@@ -1,0 +1,16 @@
+[project]
+name = "bhopengraph"
+version = "1.0.1"
+description = "A python library to create BloodHound OpenGraphs easily"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "p0dalirius" }
+]
+dependencies = [
+]
+
+[build-system]
+requires = ["poetry-core>=1.7.0"]
+build-backend = "poetry.core.masonry.api"
