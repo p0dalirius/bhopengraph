@@ -239,7 +239,7 @@ class OpenGraph(object):
         """
         errors = []
         
-        # Check for orphaned edges
+        # Check for Isolated edges
         for edge in self.edges:
             if edge.start_node_id not in self.nodes:
                 errors.append(f"Edge {edge.kind} references non-existent start node: {edge.start_node_id}")
@@ -302,6 +302,52 @@ class OpenGraph(object):
         """
         return len(self.nodes)
     
+    def getIsolatedNodes(self) -> List[Node]:
+        """
+        Get all nodes that have no edges.
+		These are nodes that are not connected to any other nodes in the graph.
+
+        Returns:
+          - List[Node]: List of nodes with no edges
+        """
+        return [
+            node for node in self.nodes.values() 
+            if not self.getEdgesFromNode(node.id) and not self.getEdgesToNode(node.id)
+        ]
+	
+    def getIsolatedNodesCount(self) -> int:
+        """
+        Get the total number of Isolated nodes in the graph.
+        These are nodes that are not connected to any other nodes in the graph.
+        
+        Returns:
+            - int: Number of Isolated nodes
+        """
+        return len(self.getIsolatedNodes())
+
+    def getIsolatedEdges(self) -> List[Edge]:
+        """
+        Get all edges that have no start or end node.
+        These are edges that are not connected to any other nodes in the graph.
+        
+        Returns:
+            - List[Edge]: List of edges with no start or end node
+        """
+        return [
+            edge for edge in self.edges
+            if not self.getEdgesFromNode(edge.start_node_id) and not self.getEdgesToNode(edge.end_node_id)
+        ]
+
+    def getIsolatedEdgesCount(self) -> int:
+        """
+        Get the total number of Isolated edges in the graph.
+        These are edges that are not connected to any other nodes in the graph.
+        
+        Returns:
+            - int: Number of Isolated edges
+        """
+        return len(self.getIsolatedEdges())
+
     def getEdgeCount(self) -> int:
         """
         Get the total number of edges in the graph.
