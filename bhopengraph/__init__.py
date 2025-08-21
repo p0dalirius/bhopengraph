@@ -16,12 +16,7 @@ from .Node import Node
 from .Edge import Edge
 from .OpenGraph import OpenGraph
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __author__ = "Remi Gascou (@podalirius_)"
 
-__all__ = [
-    "Properties",
-    "Node", 
-    "Edge",
-    "OpenGraph"
-]
+__all__ = ["Properties", "Node", "Edge", "OpenGraph"]

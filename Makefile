@@ -1,4 +1,4 @@
-.PHONY : all clean build upload test test-verbose test-coverage
+.PHONY : all clean build upload test test-verbose test-coverage lint lint-fix
 
 all: install clean
 
@@ -44,3 +44,21 @@ test-coverage:
 	@coverage report
 	@coverage html
 	@echo "[$(shell date)] Coverage report generated in htmlcov/"
+
+lint:
+	@echo "[$(shell date)] Installing linting tools ..."
+	@python3 -m pip install flake8 black --break-system-packages
+	@echo "[$(shell date)] Running flake8 linting ..."
+	@python3 -m flake8 bhopengraph/ --max-line-length=88 --extend-ignore=E501
+	@echo "[$(shell date)] Running black code formatting check ..."
+	@python3 -m black --check --diff bhopengraph/
+	@echo "[$(shell date)] Linting completed!"
+
+lint-fix:
+	@echo "[$(shell date)] Installing linting tools ..."
+	@python3 -m pip install flake8 black --break-system-packages
+	@echo "[$(shell date)] Running black to fix formatting issues ..."
+	@python3 -m black bhopengraph/
+	@echo "[$(shell date)] Running flake8 to check remaining issues ..."
+	@python3 -m flake8 bhopengraph/ --max-line-length=88 --extend-ignore=E501
+	@echo "[$(shell date)] Code formatting fixes completed!"

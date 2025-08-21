@@ -85,15 +85,9 @@ class TestEdge(unittest.TestCase):
         edge_dict = self.edge.to_dict()
         expected = {
             "kind": "OWNS",
-            "start": {
-                "value": "start_node",
-                "match_by": "id"
-            },
-            "end": {
-                "value": "end_node",
-                "match_by": "id"
-            },
-            "properties": {"weight": 1}
+            "start": {"value": "start_node", "match_by": "id"},
+            "end": {"value": "end_node", "match_by": "id"},
+            "properties": {"weight": 1},
         }
         self.assertEqual(edge_dict, expected)
 
@@ -103,14 +97,8 @@ class TestEdge(unittest.TestCase):
         edge_dict = edge.to_dict()
         expected = {
             "kind": "OWNS",
-            "start": {
-                "value": "start_node",
-                "match_by": "id"
-            },
-            "end": {
-                "value": "end_node",
-                "match_by": "id"
-            }
+            "start": {"value": "start_node", "match_by": "id"},
+            "end": {"value": "end_node", "match_by": "id"},
         }
         self.assertEqual(edge_dict, expected)
 
@@ -120,14 +108,8 @@ class TestEdge(unittest.TestCase):
         edge_dict = edge.to_dict()
         expected = {
             "kind": "OWNS",
-            "start": {
-                "value": "start_node",
-                "match_by": "id"
-            },
-            "end": {
-                "value": "end_node",
-                "match_by": "id"
-            }
+            "start": {"value": "start_node", "match_by": "id"},
+            "end": {"value": "end_node", "match_by": "id"},
         }
         self.assertEqual(edge_dict, expected)
 

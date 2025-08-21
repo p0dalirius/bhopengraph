@@ -102,7 +102,7 @@ class TestNode(unittest.TestCase):
         expected = {
             "id": "test_id",
             "kinds": ["User"],
-            "properties": {"name": "Test User"}
+            "properties": {"name": "Test User"},
         }
         self.assertEqual(node_dict, expected)
 

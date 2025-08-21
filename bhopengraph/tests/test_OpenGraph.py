@@ -362,16 +362,16 @@ class TestOpenGraph(unittest.TestCase):
     def test_export_to_file_success(self):
         """Test exporting graph to file successfully."""
         self.graph.addNode(self.node1)
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
             filename = f.name
-        
+
         try:
             result = self.graph.exportToFile(filename)
             self.assertTrue(result)
             self.assertTrue(os.path.exists(filename))
-            
+
             # Verify file contents
-            with open(filename, 'r') as f:
+            with open(filename, "r") as f:
                 content = f.read()
                 self.assertIn("node1", content)
         finally:
