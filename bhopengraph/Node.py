@@ -112,6 +112,36 @@ class Node(object):
         }
         return node_dict
 
+    @classmethod
+    def from_dict(cls, node_data: dict):
+        """
+        Create a Node instance from a dictionary.
+
+        Args:
+            - node_data (dict): Dictionary containing node data
+
+        Returns:
+            - Node: Node instance or None if data is invalid
+        """
+        try:
+            if "id" not in node_data:
+                return None
+            
+            node_id = node_data["id"]
+            kinds = node_data.get("kinds", [])
+            properties_data = node_data.get("properties", {})
+            
+            # Create Properties instance if properties data exists
+            properties = None
+            if properties_data:
+                properties = Properties()
+                for key, value in properties_data.items():
+                    properties[key] = value
+            
+            return cls(node_id, kinds, properties)
+        except (KeyError, TypeError, ValueError):
+            return None
+
     def __eq__(self, other):
         """Check if two nodes are equal based on their ID."""
         if isinstance(other, Node):

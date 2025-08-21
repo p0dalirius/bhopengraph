@@ -316,7 +316,7 @@ class OpenGraph(object):
         Returns:
           - int: Number of nodes
         """
-        return len(self.nodes)
+        return len(self.nodes.keys())
 
     def getIsolatedNodes(self) -> List[Node]:
         """
@@ -492,6 +492,67 @@ class OpenGraph(object):
                 f.write(json_data)
             return True
         except (IOError, OSError, TypeError):
+            return False
+
+    def importFromJSON(self, json_data: str) -> bool:
+        """
+        Load graph data from a JSON string.
+        """
+        return self.importFromDict(json.loads(json_data))
+
+    def importFromDict(self, data: Dict) -> bool:
+        """
+        Load graph data from a dictionary (typically from JSON).
+
+        Args:
+          - data (Dict): Dictionary containing graph data
+
+        Returns:
+          - bool: True if load was successful, False otherwise
+        """
+        try:
+            if "graph" not in data:
+                return False
+
+            graph_data = data["graph"]
+
+            # Load nodes
+            if "nodes" in graph_data:
+                for node_data in graph_data["nodes"]:
+                    node = Node.from_dict(node_data)
+                    if node:
+                        self.nodes[node.id] = node
+
+            # Load edges
+            if "edges" in graph_data:
+                for edge_data in graph_data["edges"]:
+                    edge = Edge.from_dict(edge_data)
+                    if edge:
+                        self.edges.append(edge)
+
+            # Load metadata
+            if "metadata" in data and "source_kind" in data["metadata"]:
+                self.source_kind = data["metadata"]["source_kind"]
+
+            return True
+        except (KeyError, TypeError, ValueError):
+            return False
+
+    def importFromFile(self, filename: str) -> bool:
+        """
+        Load graph data from a JSON file.
+
+        Args:
+          - filename (str): Name of the file to read
+
+        Returns:
+          - bool: True if load was successful, False otherwise
+        """
+        try:
+            with open(filename, "r") as f:
+                data = json.load(f)
+            return self.importFromDict(data)
+        except (IOError, OSError, json.JSONDecodeError):
             return False
 
     # Other methods

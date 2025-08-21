@@ -7,6 +7,7 @@ Test cases for the OpenGraph class.
 import os
 import tempfile
 import unittest
+import json
 
 from bhopengraph.Edge import Edge
 from bhopengraph.Node import Node
@@ -383,6 +384,361 @@ class TestOpenGraph(unittest.TestCase):
         # Try to write to a directory (should fail)
         result = self.graph.exportToFile("/tmp/")
         self.assertFalse(result)
+
+    # Import methods tests
+    def test_import_from_dict_valid(self):
+        """Test importing graph from valid dictionary."""
+        # Create test data
+        test_data = {
+            "graph": {
+                "nodes": [
+                    {
+                        "id": "test_node1",
+                        "kinds": ["User"],
+                        "properties": {"name": "Test User 1"}
+                    },
+                    {
+                        "id": "test_node2",
+                        "kinds": ["Computer"],
+                        "properties": {"name": "Test Computer 1"}
+                    }
+                ],
+                "edges": [
+                    {
+                        "source": "test_node1",
+                        "target": "test_node2",
+                        "kind": "OWNS"
+                    }
+                ]
+            },
+            "metadata": {
+                "source_kind": "TestImport"
+            }
+        }
+        
+        # Clear existing graph and import
+        self.graph.clear()
+        result = self.graph.importFromDict(test_data)
+        
+        self.assertTrue(result)
+        self.assertEqual(self.graph.source_kind, "TestImport")
+        self.assertEqual(len(self.graph.nodes), 2)
+        self.assertEqual(len(self.graph.edges), 1)
+        
+        # Verify nodes were imported correctly
+        node1 = self.graph.getNodeById("test_node1")
+        node2 = self.graph.getNodeById("test_node2")
+        self.assertIsNotNone(node1)
+        self.assertIsNotNone(node2)
+        self.assertEqual(node1.get_property("name"), "Test User 1")
+        self.assertEqual(node2.get_property("name"), "Test Computer 1")
+        
+        # Verify edges were imported correctly
+        edges = self.graph.getEdgesFromNode("test_node1")
+        self.assertEqual(len(edges), 1)
+        self.assertEqual(edges[0].kind, "OWNS")
+        self.assertEqual(edges[0].end_node_id, "test_node2")
+
+    def test_import_from_dict_invalid_structure(self):
+        """Test importing graph from invalid dictionary structure."""
+        invalid_data = {"invalid_key": "invalid_value"}
+        
+        self.graph.clear()
+        result = self.graph.importFromDict(invalid_data)
+        
+        self.assertFalse(result)
+        self.assertEqual(len(self.graph.nodes), 0)
+        self.assertEqual(len(self.graph.edges), 0)
+
+    def test_import_from_dict_missing_graph_key(self):
+        """Test importing graph from dictionary missing 'graph' key."""
+        invalid_data = {"metadata": {"source_kind": "Test"}}
+        
+        self.graph.clear()
+        result = self.graph.importFromDict(invalid_data)
+        
+        self.assertFalse(result)
+        self.assertEqual(len(self.graph.nodes), 0)
+        self.assertEqual(len(self.graph.edges), 0)
+
+    def test_import_from_dict_with_nodes_only(self):
+        """Test importing graph with only nodes (no edges)."""
+        test_data = {
+            "graph": {
+                "nodes": [
+                    {
+                        "id": "test_node1",
+                        "kinds": ["User"],
+                        "properties": {"name": "Test User 1"}
+                    }
+                ]
+            }
+        }
+        
+        self.graph.clear()
+        result = self.graph.importFromDict(test_data)
+        
+        self.assertTrue(result)
+        self.assertEqual(len(self.graph.nodes), 1)
+        self.assertEqual(len(self.graph.edges), 0)
+
+    def test_import_from_dict_with_edges_only(self):
+        """Test importing graph with only edges (no nodes)."""
+        test_data = {
+            "graph": {
+                "edges": [
+                    {
+                        "source": "test_node1",
+                        "target": "test_node2",
+                        "kind": "OWNS"
+                    }
+                ]
+            }
+        }
+        
+        self.graph.clear()
+        result = self.graph.importFromDict(test_data)
+        
+        self.assertTrue(result)
+        self.assertEqual(len(self.graph.nodes), 0)
+        self.assertEqual(len(self.graph.edges), 1)
+
+    def test_import_from_dict_with_metadata(self):
+        """Test importing graph with metadata."""
+        test_data = {
+            "graph": {
+                "nodes": []
+            },
+            "metadata": {
+                "source_kind": "NewSourceKind"
+            }
+        }
+        
+        self.graph.clear()
+        result = self.graph.importFromDict(test_data)
+        
+        self.assertTrue(result)
+        self.assertEqual(self.graph.source_kind, "NewSourceKind")
+
+    def test_import_from_dict_without_metadata(self):
+        """Test importing graph without metadata."""
+        test_data = {
+            "graph": {
+                "nodes": []
+            }
+        }
+        
+        self.graph.clear()
+        self.graph.source_kind = None  # Clear the source_kind from setUp
+        result = self.graph.importFromDict(test_data)
+        
+        self.assertTrue(result)
+        self.assertIsNone(self.graph.source_kind)
+
+    def test_import_from_dict_malformed_node_data(self):
+        """Test importing graph with malformed node data."""
+        test_data = {
+            "graph": {
+                "nodes": [
+                    {
+                        "id": "test_node1",
+                        "kinds": ["User"],
+                        "properties": {"name": "Test User 1"}
+                    },
+                    {
+                        "invalid_key": "invalid_value"  # Malformed node
+                    }
+                ]
+            }
+        }
+        
+        self.graph.clear()
+        result = self.graph.importFromDict(test_data)
+        
+        # Should still succeed but only import valid nodes
+        self.assertTrue(result)
+        self.assertEqual(len(self.graph.nodes), 1)  # Only one valid node imported
+
+    def test_import_from_dict_malformed_edge_data(self):
+        """Test importing graph with malformed edge data."""
+        test_data = {
+            "graph": {
+                "nodes": [
+                    {
+                        "id": "test_node1",
+                        "kinds": ["User"],
+                        "properties": {"name": "Test User 1"}
+                    }
+                ],
+                "edges": [
+                    {
+                        "source": "test_node1",
+                        "target": "test_node2",
+                        "kind": "OWNS"
+                    },
+                    {
+                        "invalid_key": "invalid_value"  # Malformed edge
+                    }
+                ]
+            }
+        }
+        
+        self.graph.clear()
+        result = self.graph.importFromDict(test_data)
+        
+        # Should still succeed but only import valid edges
+        self.assertTrue(result)
+        self.assertEqual(len(self.graph.edges), 1)  # Only one valid edge imported
+
+    def test_import_from_json_valid(self):
+        """Test importing graph from valid JSON string."""
+        json_data = '''{
+            "graph": {
+                "nodes": [
+                    {
+                        "id": "json_node1",
+                        "kinds": ["User"],
+                        "properties": {"name": "JSON User 1"}
+                    }
+                ],
+                "edges": [
+                    {
+                        "source": "json_node1",
+                        "target": "json_node2",
+                        "kind": "MEMBER_OF"
+                    }
+                ]
+            },
+            "metadata": {
+                "source_kind": "JSONImport"
+            }
+        }'''
+        
+        self.graph.clear()
+        result = self.graph.importFromJSON(json_data)
+        
+        self.assertTrue(result)
+        self.assertEqual(self.graph.source_kind, "JSONImport")
+        self.assertEqual(len(self.graph.nodes), 1)
+        self.assertEqual(len(self.graph.edges), 1)
+
+    def test_import_from_json_invalid_json(self):
+        """Test importing graph from invalid JSON string."""
+        invalid_json = '{"invalid": json}'
+        
+        self.graph.clear()
+        # This should fail due to JSON parsing error
+        with self.assertRaises(json.JSONDecodeError):
+            self.graph.importFromJSON(invalid_json)
+
+    def test_import_from_file_success(self):
+        """Test importing graph from file successfully."""
+        # Create a temporary file with test data
+        test_data = {
+            "graph": {
+                "nodes": [
+                    {
+                        "id": "file_node1",
+                        "kinds": ["User"],
+                        "properties": {"name": "File User 1"}
+                    }
+                ],
+                "edges": [
+                    {
+                        "source": "file_node1",
+                        "target": "file_node2",
+                        "kind": "OWNS"
+                    }
+                ]
+            },
+            "metadata": {
+                "source_kind": "FileImport"
+            }
+        }
+        
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
+            filename = f.name
+            f.write(json.dumps(test_data))
+        
+        try:
+            self.graph.clear()
+            result = self.graph.importFromFile(filename)
+            
+            self.assertTrue(result)
+            self.assertEqual(self.graph.source_kind, "FileImport")
+            self.assertEqual(len(self.graph.nodes), 1)
+            self.assertEqual(len(self.graph.edges), 1)
+        finally:
+            os.unlink(filename)
+
+    def test_import_from_file_not_exists(self):
+        """Test importing graph from non-existent file."""
+        result = self.graph.importFromFile("/nonexistent/file.json")
+        self.assertFalse(result)
+
+    def test_import_from_file_invalid_json(self):
+        """Test importing graph from file with invalid JSON."""
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
+            filename = f.name
+            f.write('{"invalid": json}')
+        
+        try:
+            self.graph.clear()
+            result = self.graph.importFromFile(filename)
+            self.assertFalse(result)
+        finally:
+            os.unlink(filename)
+
+    def test_import_from_file_directory(self):
+        """Test importing graph from directory (should fail)."""
+        result = self.graph.importFromFile("/tmp/")
+        self.assertFalse(result)
+
+    def test_import_preserves_existing_data(self):
+        """Test that import doesn't clear existing data by default."""
+        # Add some existing data
+        self.graph.addNode(self.node1)
+        self.graph.addEdgeWithoutValidation(self.edge1)
+        
+        # Import new data
+        test_data = {
+            "graph": {
+                "nodes": [
+                    {
+                        "id": "new_node1",
+                        "kinds": ["User"],
+                        "properties": {"name": "New User 1"}
+                    }
+                ]
+            }
+        }
+        
+        result = self.graph.importFromDict(test_data)
+        
+        self.assertTrue(result)
+        # Should have both old and new data
+        self.assertEqual(len(self.graph.nodes), 2)
+        self.assertEqual(len(self.graph.edges), 1)
+        
+        # Verify both nodes exist
+        self.assertIsNotNone(self.graph.getNodeById("node1"))
+        self.assertIsNotNone(self.graph.getNodeById("new_node1"))
+
+    def test_import_overwrites_source_kind(self):
+        """Test that import overwrites existing source_kind."""
+        # Set initial source_kind
+        self.graph.source_kind = "InitialSource"
+        
+        # Import with new source_kind
+        test_data = {
+            "graph": {"nodes": []},
+            "metadata": {"source_kind": "NewSource"}
+        }
+        
+        result = self.graph.importFromDict(test_data)
+        
+        self.assertTrue(result)
+        self.assertEqual(self.graph.source_kind, "NewSource")
 
     # Other methods tests
     def test_clear(self):

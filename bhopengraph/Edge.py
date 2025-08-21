@@ -98,6 +98,56 @@ class Edge(object):
 
         return edge_dict
 
+    @classmethod
+    def from_dict(cls, edge_data: dict):
+        """
+        Create an Edge instance from a dictionary.
+
+        Args:
+            - edge_data (dict): Dictionary containing edge data
+
+        Returns:
+            - Edge: Edge instance or None if data is invalid
+        """
+        try:
+            if "kind" not in edge_data:
+                return None
+            
+            kind = edge_data["kind"]
+            
+            # Handle different edge data formats
+            start_node_id = None
+            end_node_id = None
+            
+            if "start" in edge_data and "end" in edge_data:
+                # BloodHound format: {"start": {"value": "id"}, "end": {"value": "id"}}
+                start_node_id = edge_data["start"].get("value")
+                end_node_id = edge_data["end"].get("value")
+            elif "source" in edge_data and "target" in edge_data:
+                # Alternative format: {"source": "id", "target": "id"}
+                start_node_id = edge_data["source"]
+                end_node_id = edge_data["target"]
+            elif "start_node_id" in edge_data and "end_node_id" in edge_data:
+                # Direct format: {"start_node_id": "id", "end_node_id": "id"}
+                start_node_id = edge_data["start_node_id"]
+                end_node_id = edge_data["end_node_id"]
+            
+            if not start_node_id or not end_node_id:
+                return None
+            
+            properties_data = edge_data.get("properties", {})
+            
+            # Create Properties instance if properties data exists
+            properties = None
+            if properties_data:
+                properties = Properties()
+                for key, value in properties_data.items():
+                    properties[key] = value
+            
+            return cls(start_node_id, end_node_id, kind, properties)
+        except (KeyError, TypeError, ValueError):
+            return None
+
     def get_start_node_id(self) -> str:
         """
         Get the start node ID.
