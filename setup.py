@@ -148,7 +148,7 @@ with open('requirements.txt', 'r', encoding='utf-8') as f:
 
 setuptools.setup(
     name="bhopengraph",
-    version="1.0.1",
+    version="1.1.0",
     description="A python library to create BloodHound OpenGraphs easily",
     url="https://github.com/p0dalirius/bhopengraph",
     author="Podalirius",
