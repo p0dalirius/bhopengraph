@@ -5,6 +5,7 @@ Test cases for the Properties class.
 """
 
 import unittest
+
 from bhopengraph.Properties import Properties
 
 

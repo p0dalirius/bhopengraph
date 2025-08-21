@@ -5,6 +5,7 @@ Test cases for the Node class.
 """
 
 import unittest
+
 from bhopengraph.Node import Node
 from bhopengraph.Properties import Properties
 

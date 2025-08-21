@@ -6,8 +6,9 @@
 
 import json
 from typing import Dict, List, Optional, Set
-from bhopengraph.Node import Node
+
 from bhopengraph.Edge import Edge
+from bhopengraph.Node import Node
 
 
 class OpenGraph(object):

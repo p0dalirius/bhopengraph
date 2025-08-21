@@ -5,6 +5,7 @@ Test cases for the Edge class.
 """
 
 import unittest
+
 from bhopengraph.Edge import Edge
 from bhopengraph.Properties import Properties
 

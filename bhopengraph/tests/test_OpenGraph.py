@@ -4,12 +4,13 @@
 Test cases for the OpenGraph class.
 """
 
-import unittest
-import tempfile
 import os
-from bhopengraph.OpenGraph import OpenGraph
-from bhopengraph.Node import Node
+import tempfile
+import unittest
+
 from bhopengraph.Edge import Edge
+from bhopengraph.Node import Node
+from bhopengraph.OpenGraph import OpenGraph
 from bhopengraph.Properties import Properties
 
 
