@@ -165,5 +165,9 @@ setuptools.setup(
     ],
     python_requires='>=3.11',
     install_requires=requirements,
-    entry_points={ }
+    entry_points={
+      "console_scripts": [
+        "bhopengraph=bhopengraph.__main__:main"
+      ]
+    }
 )
