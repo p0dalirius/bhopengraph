@@ -16,6 +16,8 @@ This module provides Python classes for creating and managing graph structures t
 
 If you don't know about BloodHound OpenGraph yet, a great introduction can be found here: [https://bloodhound.specterops.io/opengraph/best-practices](https://bloodhound.specterops.io/opengraph/best-practices)
 
+The complete documentation of this library can be found here: https://bhopengraph.readthedocs.io/en/latest/ 
+
 ## Examples
 
 Here is an example of a Python program using the [bhopengraph](https://github.com/p0dalirius/bhopengraph) python library to model the [Minimal Working JSON](https://bloodhound.specterops.io/opengraph/schema#minimal-working-json) from the OpenGraph Schema documentation:
