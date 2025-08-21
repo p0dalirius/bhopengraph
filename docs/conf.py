@@ -17,8 +17,8 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'bhopengraph'
-copyright = '2024, p0dalirius'
-author = 'p0dalirius'
+copyright = '2025, Remi Gascou (Podalirius)'
+author = 'Remi Gascou (Podalirius)'
 release = '1.1.0'
 version = '1.1.0'
 
