@@ -178,6 +178,12 @@ class Edge(object):
         """
         return self.kind
 
+    def get_unique_id(self) -> str:
+        """
+        Get a unique ID for the edge.
+        """
+        return f"[{self.start_match_by}:{self.start_node}]-({self.kind})->[{self.end_match_by}:{self.end_node}]"
+
     def __eq__(self, other):
         """Check if two edges are equal based on their start, end, and kind."""
         if isinstance(other, Edge):

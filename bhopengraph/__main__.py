@@ -54,7 +54,7 @@ def main():
                 % filesize_string(os.path.getsize(options.file))
             )
             graph = OpenGraph()
-            graph.importFromFile(options.file)
+            graph.import_from_file(options.file)
             logger.log("  └── OpenGraph successfully loaded")
 
             # Get the graph information

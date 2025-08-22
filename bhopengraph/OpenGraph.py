@@ -404,17 +404,25 @@ class OpenGraph(object):
         """
         Validate the graph for common issues.
 
+        Optimized implementation with O(n+m) complexity instead of O(n×m).
+        Uses pre-computed edge mappings for efficient lookups.
+
         Returns:
           - dict: Dictionary with error categories as keys and lists of affected elements as values
         """
-
         errors = {"isolated_edges": [], "isolated_nodes": []}
 
         foundIsolatedEdges = False
         foundIsolatedNodes = False
 
-        # Check for isolated edges (edges referencing non-existent nodes)
+        # Pre-compute edge mappings for O(1) lookups
+        # This trades O(m) memory for O(1) lookup time
+        start_node_edges = {}
+        end_node_edges = {}
+
+        # Build edge mappings in a single pass through edges
         for edge in self.edges:
+            # Check for isolated edges (edges referencing non-existent nodes)
             if edge.start_node not in self.nodes:
                 foundIsolatedEdges = True
                 errors["isolated_edges"].append(
@@ -424,6 +432,11 @@ class OpenGraph(object):
                         "node_id": edge.start_node,
                     }
                 )
+            else:
+                # Build start node mapping
+                if edge.start_node not in start_node_edges:
+                    start_node_edges[edge.start_node] = []
+                start_node_edges[edge.start_node].append(edge)
 
             if edge.end_node not in self.nodes:
                 foundIsolatedEdges = True
@@ -434,12 +447,19 @@ class OpenGraph(object):
                         "node_id": edge.end_node,
                     }
                 )
+            else:
+                # Build end node mapping
+                if edge.end_node not in end_node_edges:
+                    end_node_edges[edge.end_node] = []
+                end_node_edges[edge.end_node].append(edge)
 
-        # Check for nodes without edges
+        # Check for isolated nodes using pre-computed mappings
         for node_id in self.nodes:
-            if not self.get_edges_from_node(node_id) and not self.get_edges_to_node(
-                node_id
-            ):
+            # O(1) lookup instead of O(m) scan
+            has_outgoing = node_id in start_node_edges
+            has_incoming = node_id in end_node_edges
+
+            if not has_outgoing and not has_incoming:
                 foundIsolatedNodes = True
                 errors["isolated_nodes"].append(
                     {
@@ -447,6 +467,7 @@ class OpenGraph(object):
                     }
                 )
 
+        # Clean up empty error categories
         if not foundIsolatedEdges and "isolated_edges" in errors:
             del errors["isolated_edges"]
 
@@ -457,7 +478,9 @@ class OpenGraph(object):
 
     # Export methods
 
-    def export_json(self, include_metadata: bool = True, indent: int = 0) -> str:
+    def export_json(
+        self, include_metadata: bool = True, indent: None | int = None
+    ) -> str:
         """
         Export the graph to JSON format compatible with BloodHound OpenGraph.
 
@@ -480,7 +503,7 @@ class OpenGraph(object):
         return json.dumps(graph_data, indent=indent)
 
     def export_to_file(
-        self, filename: str, include_metadata: bool = True, indent: int = 0
+        self, filename: str, include_metadata: bool = True, indent: None | int = None
     ) -> bool:
         """
         Export the graph to a JSON file.
