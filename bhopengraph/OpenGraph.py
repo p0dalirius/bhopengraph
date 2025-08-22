@@ -47,15 +47,15 @@ class OpenGraph(object):
         Returns:
           - bool: True if edge was added, False if start or end node doesn't exist
         """
-        if edge.start_node_id not in self.nodes:
+        if edge.start_node not in self.nodes:
             return False
-        if edge.end_node_id not in self.nodes:
+        if edge.end_node not in self.nodes:
             return False
 
         for existing_edge in self.edges:
             if (
-                existing_edge.start_node_id == edge.start_node_id
-                and existing_edge.end_node_id == edge.end_node_id
+                existing_edge.start_node == edge.start_node
+                and existing_edge.end_node == edge.end_node
                 and existing_edge.kind == edge.kind
             ):
                 return False
@@ -131,7 +131,7 @@ class OpenGraph(object):
         Returns:
           - List[Edge]: List of edges starting from the specified node
         """
-        return [edge for edge in self.edges if edge.start_node_id == node_id]
+        return [edge for edge in self.edges if edge.start_node == node_id]
 
     def get_edges_to_node(self, node_id: str) -> List[Edge]:
         """
@@ -143,7 +143,7 @@ class OpenGraph(object):
         Returns:
           - List[Edge]: List of edges ending at the specified node
         """
-        return [edge for edge in self.edges if edge.end_node_id == node_id]
+        return [edge for edge in self.edges if edge.end_node == node_id]
 
     def get_isolated_edges(self) -> List[Edge]:
         """
@@ -156,8 +156,7 @@ class OpenGraph(object):
         return [
             edge
             for edge in self.edges
-            if edge.start_node_id not in self.nodes
-            or edge.end_node_id not in self.nodes
+            if edge.start_node not in self.nodes or edge.end_node not in self.nodes
         ]
 
     def get_isolated_edges_count(self) -> int:
@@ -318,9 +317,7 @@ class OpenGraph(object):
 
         # Remove all edges that reference this node
         self.edges = [
-            edge
-            for edge in self.edges
-            if edge.start_node_id != id and edge.end_node_id != id
+            edge for edge in self.edges if edge.start_node != id and edge.end_node != id
         ]
 
         return True
@@ -359,7 +356,7 @@ class OpenGraph(object):
                 continue
 
             for edge in self.get_edges_from_node(current_id):
-                next_id = edge.end_node_id
+                next_id = edge.end_node
                 # Check if next_id is not already in the current path (prevents cycles)
                 if next_id not in path:
                     new_path = path + [next_id]
@@ -393,11 +390,11 @@ class OpenGraph(object):
 
                         # Add all adjacent nodes
                         for edge in self.get_edges_from_node(current):
-                            if edge.end_node_id not in visited:
-                                stack.append(edge.end_node_id)
+                            if edge.end_node not in visited:
+                                stack.append(edge.end_node)
                         for edge in self.get_edges_to_node(current):
-                            if edge.start_node_id not in visited:
-                                stack.append(edge.start_node_id)
+                            if edge.start_node not in visited:
+                                stack.append(edge.start_node)
 
                 components.append(component)
 
@@ -418,23 +415,23 @@ class OpenGraph(object):
 
         # Check for isolated edges (edges referencing non-existent nodes)
         for edge in self.edges:
-            if edge.start_node_id not in self.nodes:
+            if edge.start_node not in self.nodes:
                 foundIsolatedEdges = True
                 errors["isolated_edges"].append(
                     {
                         "edge": edge,
                         "missing_type": "start_node",
-                        "node_id": edge.start_node_id,
+                        "node_id": edge.start_node,
                     }
                 )
 
-            if edge.end_node_id not in self.nodes:
+            if edge.end_node not in self.nodes:
                 foundIsolatedEdges = True
                 errors["isolated_edges"].append(
                     {
                         "edge": edge,
                         "missing_type": "end_node",
-                        "node_id": edge.end_node_id,
+                        "node_id": edge.end_node,
                     }
                 )
 
@@ -460,7 +457,7 @@ class OpenGraph(object):
 
     # Export methods
 
-    def export_json(self, include_metadata: bool = True) -> str:
+    def export_json(self, include_metadata: bool = True, indent: int = 0) -> str:
         """
         Export the graph to JSON format compatible with BloodHound OpenGraph.
 
@@ -480,9 +477,11 @@ class OpenGraph(object):
         if include_metadata and self.source_kind:
             graph_data["metadata"] = {"source_kind": self.source_kind}
 
-        return json.dumps(graph_data, indent=2)
+        return json.dumps(graph_data, indent=indent)
 
-    def export_to_file(self, filename: str, include_metadata: bool = True) -> bool:
+    def export_to_file(
+        self, filename: str, include_metadata: bool = True, indent: int = 0
+    ) -> bool:
         """
         Export the graph to a JSON file.
 
@@ -494,7 +493,7 @@ class OpenGraph(object):
           - bool: True if export was successful, False otherwise
         """
         try:
-            json_data = self.export_json(include_metadata)
+            json_data = self.export_json(include_metadata, indent)
             with open(filename, "w") as f:
                 f.write(json_data)
             return True

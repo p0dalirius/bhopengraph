@@ -5,6 +5,7 @@ all: install clean
 clean:
 	@rm -rf `find ./ -type d -name "*__pycache__"`
 	@rm -rf ./build/ ./dist/ ./bhopengraph.egg-info/
+	@rm -rf ./bhopengraph/tests/datasets/dataset_n*.json
 
 generate-docs:
 	@python3 -m pip install pdoc --break-system-packages

@@ -21,31 +21,36 @@ class Edge(object):
 
     def __init__(
         self,
-        start_node_id: str,
-        end_node_id: str,
+        start_node: str,
+        end_node: str,
         kind: str,
         properties: Properties = None,
+        start_match_by: str = "id",
+        end_match_by: str = "id",
     ):
         """
         Initialize an Edge.
 
         Args:
-          - start_node_id (str): ID of the source node
-          - end_node_id (str): ID of the destination node
+          - start_node (str): ID of the source node
+          - end_node (str): ID of the destination node
           - kind (str): Type/class of the edge relationship
           - properties (Properties): Edge properties
         """
-        if not start_node_id:
+        if not start_node:
             raise ValueError("Start node ID cannot be empty")
-        if not end_node_id:
+        if not end_node:
             raise ValueError("End node ID cannot be empty")
         if not kind:
             raise ValueError("Edge kind cannot be empty")
 
-        self.start_node_id = start_node_id
-        self.end_node_id = end_node_id
+        self.start_node = start_node
+        self.end_node = end_node
         self.kind = kind
         self.properties = properties or Properties()
+
+        self.start_match_by = start_match_by
+        self.end_match_by = end_match_by
 
     def set_property(self, key: str, value):
         """
@@ -88,8 +93,8 @@ class Edge(object):
         """
         edge_dict = {
             "kind": self.kind,
-            "start": {"value": self.start_node_id, "match_by": "id"},
-            "end": {"value": self.end_node_id, "match_by": "id"},
+            "start": {"value": self.start_node, "match_by": self.start_match_by},
+            "end": {"value": self.end_node, "match_by": self.end_match_by},
         }
 
         # Only include properties if they exist and are not empty
@@ -116,23 +121,19 @@ class Edge(object):
             kind = edge_data["kind"]
 
             # Handle different edge data formats
-            start_node_id = None
-            end_node_id = None
+            start_node = None
+            end_node = None
+            start_match_by = None
+            end_match_by = None
 
             if "start" in edge_data and "end" in edge_data:
-                # BloodHound format: {"start": {"value": "id"}, "end": {"value": "id"}}
-                start_node_id = edge_data["start"].get("value")
-                end_node_id = edge_data["end"].get("value")
-            elif "source" in edge_data and "target" in edge_data:
-                # Alternative format: {"source": "id", "target": "id"}
-                start_node_id = edge_data["source"]
-                end_node_id = edge_data["target"]
-            elif "start_node_id" in edge_data and "end_node_id" in edge_data:
-                # Direct format: {"start_node_id": "id", "end_node_id": "id"}
-                start_node_id = edge_data["start_node_id"]
-                end_node_id = edge_data["end_node_id"]
+                # Direct format: {"start": "id", "end": "id"}
+                start_node = edge_data["start"]["value"]
+                start_match_by = edge_data["start"]["match_by"]
+                end_node = edge_data["end"]["value"]
+                end_match_by = edge_data["end"]["match_by"]
 
-            if not start_node_id or not end_node_id:
+            if not start_node or not end_node:
                 return None
 
             properties_data = edge_data.get("properties", {})
@@ -144,27 +145,29 @@ class Edge(object):
                 for key, value in properties_data.items():
                     properties[key] = value
 
-            return cls(start_node_id, end_node_id, kind, properties)
+            return cls(
+                start_node, end_node, kind, properties, start_match_by, end_match_by
+            )
         except (KeyError, TypeError, ValueError):
             return None
 
-    def get_start_node_id(self) -> str:
+    def get_start_node(self) -> str:
         """
         Get the start node ID.
 
         Returns:
           - str: Start node ID
         """
-        return self.start_node_id
+        return self.start_node
 
-    def get_end_node_id(self) -> str:
+    def get_end_node(self) -> str:
         """
         Get the end node ID.
 
         Returns:
           - str: End node ID
         """
-        return self.end_node_id
+        return self.end_node
 
     def get_kind(self) -> str:
         """
@@ -179,15 +182,15 @@ class Edge(object):
         """Check if two edges are equal based on their start, end, and kind."""
         if isinstance(other, Edge):
             return (
-                self.start_node_id == other.start_node_id
-                and self.end_node_id == other.end_node_id
+                self.start_node == other.start_node
+                and self.end_node == other.end_node
                 and self.kind == other.kind
             )
         return False
 
     def __hash__(self):
         """Hash based on start, end, and kind for use in sets and as dictionary keys."""
-        return hash((self.start_node_id, self.end_node_id, self.kind))
+        return hash((self.start_node, self.end_node, self.kind))
 
     def __repr__(self) -> str:
-        return f"Edge(start='{self.start_node_id}', end='{self.end_node_id}', kind='{self.kind}', properties={self.properties})"
+        return f"Edge(start='{self.start_node}', end='{self.end_node}', kind='{self.kind}', properties={self.properties})"

@@ -20,8 +20,8 @@ class TestEdge(unittest.TestCase):
     def test_init_with_valid_params(self):
         """Test Edge initialization with valid parameters."""
         edge = Edge("start_node", "end_node", "OWNS", Properties(weight=1))
-        self.assertEqual(edge.start_node_id, "start_node")
-        self.assertEqual(edge.end_node_id, "end_node")
+        self.assertEqual(edge.start_node, "start_node")
+        self.assertEqual(edge.end_node, "end_node")
         self.assertEqual(edge.kind, "OWNS")
         self.assertIsInstance(edge.properties, Properties)
 
@@ -114,13 +114,13 @@ class TestEdge(unittest.TestCase):
         }
         self.assertEqual(edge_dict, expected)
 
-    def test_get_start_node_id(self):
+    def test_get_start_node(self):
         """Test getting start node ID."""
-        self.assertEqual(self.edge.get_start_node_id(), "start_node")
+        self.assertEqual(self.edge.get_start_node(), "start_node")
 
-    def test_get_end_node_id(self):
+    def test_get_end_node(self):
         """Test getting end node ID."""
-        self.assertEqual(self.edge.get_end_node_id(), "end_node")
+        self.assertEqual(self.edge.get_end_node(), "end_node")
 
     def test_get_kind(self):
         """Test getting edge kind."""
