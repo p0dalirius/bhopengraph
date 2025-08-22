@@ -32,9 +32,49 @@ class OpenGraph(object):
         """
         self.nodes: Dict[str, Node] = {}
         self.edges: List[Edge] = []
+
         self.source_kind = source_kind
 
     # Edges methods
+
+    def addEdge(self, edge: Edge) -> bool:
+        """
+        Add an edge to the graph if it doesn't already exist and if the start and end nodes exist.
+
+        Args:
+          - edge (Edge): Edge to add
+
+        Returns:
+          - bool: True if edge was added, False if start or end node doesn't exist
+        """
+        if edge.start_node_id not in self.nodes:
+            return False
+        if edge.end_node_id not in self.nodes:
+            return False
+
+        for existing_edge in self.edges:
+            if (
+                existing_edge.start_node_id == edge.start_node_id
+                and existing_edge.end_node_id == edge.end_node_id
+                and existing_edge.kind == edge.kind
+            ):
+                return False
+
+        self.edges.append(edge)
+        return True
+
+    def addEdges(self, edges: List[Edge]) -> bool:
+        """
+        Add a list of edges to the graph.
+
+        Returns:
+            - bool: True if all edges were added successfully, False if any failed
+        """
+        success = True
+        for edge in edges:
+            if not self.addEdge(edge):
+                success = False
+        return success
 
     def addEdgeWithoutValidation(self, edge: Edge) -> bool:
         """
@@ -69,45 +109,6 @@ class OpenGraph(object):
             self.addEdgeWithoutValidation(edge)
         return True
 
-    def addEdges(self, edges: List[Edge]) -> bool:
-        """
-        Add a list of edges to the graph.
-
-        Returns:
-            - bool: True if all edges were added successfully, False if any failed
-        """
-        success = True
-        for edge in edges:
-            if not self.addEdge(edge):
-                success = False
-        return success
-
-    def addEdge(self, edge: Edge) -> bool:
-        """
-        Add an edge to the graph if it doesn't already exist and if the start and end nodes exist.
-
-        Args:
-          - edge (Edge): Edge to add
-
-        Returns:
-          - bool: True if edge was added, False if start or end node doesn't exist
-        """
-        if edge.start_node_id not in self.nodes:
-            return False
-        if edge.end_node_id not in self.nodes:
-            return False
-
-        for existing_edge in self.edges:
-            if (
-                existing_edge.start_node_id == edge.start_node_id
-                and existing_edge.end_node_id == edge.end_node_id
-                and existing_edge.kind == edge.kind
-            ):
-                return False
-
-        self.edges.append(edge)
-        return True
-
     def getEdgesByKind(self, kind: str) -> List[Edge]:
         """
         Get all edges of a specific kind.
@@ -120,29 +121,29 @@ class OpenGraph(object):
         """
         return [edge for edge in self.edges if edge.kind == kind]
 
-    def getEdgesFromNode(self, id: str) -> List[Edge]:
+    def getEdgesFromNode(self, node_id: str) -> List[Edge]:
         """
         Get all edges starting from a specific node.
 
         Args:
-          - id (str): ID of the source node
+          - node_id (str): ID of the source node
 
         Returns:
           - List[Edge]: List of edges starting from the specified node
         """
-        return [edge for edge in self.edges if edge.start_node_id == id]
+        return [edge for edge in self.edges if edge.start_node_id == node_id]
 
-    def getEdgesToNode(self, id: str) -> List[Edge]:
+    def getEdgesToNode(self, node_id: str) -> List[Edge]:
         """
         Get all edges ending at a specific node.
 
         Args:
-          - id (str): ID of the destination node
+          - node_id (str): ID of the destination node
 
         Returns:
           - List[Edge]: List of edges ending at the specified node
         """
-        return [edge for edge in self.edges if edge.end_node_id == id]
+        return [edge for edge in self.edges if edge.end_node_id == node_id]
 
     def getIsolatedEdges(self) -> List[Edge]:
         """
@@ -180,6 +181,34 @@ class OpenGraph(object):
 
     # Nodes methods
 
+    def addNode(self, node: Node) -> bool:
+        """
+        Add a node to the graph.
+
+        Args:
+          - node (Node): Node to add
+
+        Returns:
+          - bool: True if node was added, False if node with same ID already exists
+        """
+        if node.id in self.nodes:
+            return False
+
+        # Add source_kind to node kinds if specified
+        if self.source_kind and self.source_kind not in node.kinds:
+            node.add_kind(self.source_kind)
+
+        self.nodes[node.id] = node
+        return True
+
+    def addNodes(self, nodes: List[Node]) -> bool:
+        """
+        Add a list of nodes to the graph.
+        """
+        for node in nodes:
+            self.addNode(node)
+        return True
+
     def addNodeWithoutValidation(self, node: Node) -> bool:
         """
         Add a node to the graph without validation.
@@ -211,78 +240,6 @@ class OpenGraph(object):
 
         for node in nodes:
             self.addNodeWithoutValidation(node)
-        return True
-
-    def addNodes(self, nodes: List[Node]) -> bool:
-        """
-        Add a list of nodes to the graph.
-        """
-        for node in nodes:
-            self.addNode(node)
-        return True
-
-    def addNode(self, node: Node) -> bool:
-        """
-        Add a node to the graph.
-
-        Args:
-          - node (Node): Node to add
-
-        Returns:
-          - bool: True if node was added, False if node with same ID already exists
-        """
-        if node.id in self.nodes:
-            return False
-
-        # Add source_kind to node kinds if specified
-        if self.source_kind and self.source_kind not in node.kinds:
-            node.add_kind(self.source_kind)
-
-        self.nodes[node.id] = node
-        return True
-
-    def removeNodes(self, nodes: List[Node]) -> bool:
-        """
-        Remove a list of nodes from the graph.
-
-        Returns:
-            - bool: True if all nodes were removed successfully, False if any failed
-        """
-        success = True
-        for node in nodes:
-            if not self.removeNode(node):
-                success = False
-        return success
-
-    def removeNode(self, node: Node) -> bool:
-        """
-        Remove a node from the graph.
-        """
-        return self.removeNodeById(node.id)
-
-    def removeNodeById(self, id: str) -> bool:
-        """
-        Remove a node and all its associated edges from the graph.
-
-        Args:
-          - id (str): ID of the node to remove
-
-        Returns:
-          - bool: True if node was removed, False if node doesn't exist
-        """
-        if id not in self.nodes:
-            return False
-
-        # Remove the node
-        del self.nodes[id]
-
-        # Remove all edges that reference this node
-        self.edges = [
-            edge
-            for edge in self.edges
-            if edge.start_node_id != id and edge.end_node_id != id
-        ]
-
         return True
 
     def getNodeById(self, id: str) -> Optional[Node]:
@@ -341,6 +298,31 @@ class OpenGraph(object):
             - int: Number of Isolated nodes
         """
         return len(self.getIsolatedNodes())
+
+    def removeNodeById(self, id: str) -> bool:
+        """
+        Remove a node and all its associated edges from the graph.
+
+        Args:
+          - id (str): ID of the node to remove
+
+        Returns:
+          - bool: True if node was removed, False if node doesn't exist
+        """
+        if id not in self.nodes:
+            return False
+
+        # Remove the node
+        del self.nodes[id]
+
+        # Remove all edges that reference this node
+        self.edges = [
+            edge
+            for edge in self.edges
+            if edge.start_node_id != id and edge.end_node_id != id
+        ]
+
+        return True
 
     # Paths methods
 
@@ -420,38 +402,56 @@ class OpenGraph(object):
 
         return components
 
-    def validateGraph(self) -> List[str]:
+    def validateGraph(self) -> dict:
         """
         Validate the graph for common issues.
 
         Returns:
-          - List[str]: List of validation error messages
+          - dict: Dictionary with error categories as keys and lists of affected elements as values
         """
-        errors = []
 
-        # Check for Isolated edges
+        errors = {"isolated_edges": [], "isolated_nodes": []}
+
+        foundIsolatedEdges = False
+        foundIsolatedNodes = False
+
+        # Check for isolated edges (edges referencing non-existent nodes)
         for edge in self.edges:
             if edge.start_node_id not in self.nodes:
-                errors.append(
-                    f"Edge {edge.kind} references non-existent start node: {edge.start_node_id}"
+                foundIsolatedEdges = True
+                errors["isolated_edges"].append(
+                    {
+                        "edge_id": edge.kind,
+                        "node_id": edge.start_node_id,
+                        "issue": "start_node_not_found",
+                    }
                 )
+
             if edge.end_node_id not in self.nodes:
-                errors.append(
-                    f"Edge {edge.kind} references non-existent end node: {edge.end_node_id}"
+                foundIsolatedEdges = True
+                errors["isolated_edges"].append(
+                    {
+                        "edge_id": edge.kind,
+                        "node_id": edge.end_node_id,
+                        "issue": "end_node_not_found",
+                    }
                 )
 
         # Check for nodes without edges
-        isolated_nodes = []
         for node_id in self.nodes:
             if not self.getEdgesFromNode(node_id) and not self.getEdgesToNode(node_id):
-                isolated_nodes.append(node_id)
+                foundIsolatedNodes = True
+                errors["isolated_nodes"].append(node_id)
 
-        if isolated_nodes:
-            errors.append(
-                f"Found {len(isolated_nodes)} isolated nodes: {isolated_nodes}"
-            )
+        if not foundIsolatedEdges and "isolated_edges" in errors:
+            del errors["isolated_edges"]
+
+        if not foundIsolatedNodes and "isolated_nodes" in errors:
+            del errors["isolated_nodes"]
 
         return errors
+
+    # Export methods
 
     def exportJSON(self, include_metadata: bool = True) -> str:
         """
@@ -494,11 +494,49 @@ class OpenGraph(object):
         except (IOError, OSError, TypeError):
             return False
 
+    def exportToDict(self) -> Dict:
+        """
+        Export the graph to a dictionary.
+        """
+
+        return {
+            "graph": {
+                "nodes": [
+                    node.to_dict() for node in self.nodes.values()
+                ],
+                "edges": [
+                    edge.to_dict() for edge in self.edges
+                ],
+            },
+            "metadata": {
+                "source_kind": (self.source_kind if self.source_kind else None)
+            },
+        }
+
+    # Import methods
+
     def importFromJSON(self, json_data: str) -> bool:
         """
         Load graph data from a JSON string.
         """
         return self.importFromDict(json.loads(json_data))
+
+    def importFromFile(self, filename: str) -> bool:
+        """
+        Load graph data from a JSON file.
+
+        Args:
+          - filename (str): Name of the file to read
+
+        Returns:
+          - bool: True if load was successful, False otherwise
+        """
+        try:
+            with open(filename, "r") as f:
+                data = json.load(f)
+            return self.importFromDict(data)
+        except (IOError, OSError, json.JSONDecodeError):
+            return False
 
     def importFromDict(self, data: Dict) -> bool:
         """
@@ -536,23 +574,6 @@ class OpenGraph(object):
 
             return True
         except (KeyError, TypeError, ValueError):
-            return False
-
-    def importFromFile(self, filename: str) -> bool:
-        """
-        Load graph data from a JSON file.
-
-        Args:
-          - filename (str): Name of the file to read
-
-        Returns:
-          - bool: True if load was successful, False otherwise
-        """
-        try:
-            with open(filename, "r") as f:
-                data = json.load(f)
-            return self.importFromDict(data)
-        except (IOError, OSError, json.JSONDecodeError):
             return False
 
     # Other methods

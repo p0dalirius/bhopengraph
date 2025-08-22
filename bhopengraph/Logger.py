@@ -6,6 +6,7 @@
 
 import time
 
+
 class Logger(object):
     """
     Simple logger class that prints messages with timestamps
@@ -15,7 +16,7 @@ class Logger(object):
         super(Logger, self).__init__()
         self.__debug = debug
         self.__indent_level = 0
-    
+
     def increment_indent(self):
         """
         Increment the indentation level

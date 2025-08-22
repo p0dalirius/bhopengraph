@@ -5,7 +5,7 @@
 # Date created       : 21 Aug 2025
 
 
-def b_filesize(l: int) -> str:
+def b_filesize(size: int) -> str:
     """
     Convert a file size from bytes to a more readable format using the largest appropriate unit.
 
@@ -14,14 +14,14 @@ def b_filesize(l: int) -> str:
     two decimal places.
 
     Args:
-        l (int): The file size in bytes.
+        size (int): The file size in bytes.
 
     Returns:
         str: A string representing the file size in a more readable format, including the appropriate unit.
     """
 
-    units = ['B','kB','MB','GB','TB','PB']
+    units = ["B", "kB", "MB", "GB", "TB", "PB"]
     for k in range(len(units)):
-        if l < (1024**(k+1)):
+        if size < (1024 ** (k + 1)):
             break
-    return "%4.2f %s" % (round(l/(1024**(k)),2), units[k])
+    return "%4.2f %s" % (round(size / (1024 ** (k)), 2), units[k])

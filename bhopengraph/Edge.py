@@ -112,13 +112,13 @@ class Edge(object):
         try:
             if "kind" not in edge_data:
                 return None
-            
+
             kind = edge_data["kind"]
-            
+
             # Handle different edge data formats
             start_node_id = None
             end_node_id = None
-            
+
             if "start" in edge_data and "end" in edge_data:
                 # BloodHound format: {"start": {"value": "id"}, "end": {"value": "id"}}
                 start_node_id = edge_data["start"].get("value")
@@ -131,19 +131,19 @@ class Edge(object):
                 # Direct format: {"start_node_id": "id", "end_node_id": "id"}
                 start_node_id = edge_data["start_node_id"]
                 end_node_id = edge_data["end_node_id"]
-            
+
             if not start_node_id or not end_node_id:
                 return None
-            
+
             properties_data = edge_data.get("properties", {})
-            
+
             # Create Properties instance if properties data exists
             properties = None
             if properties_data:
                 properties = Properties()
                 for key, value in properties_data.items():
                     properties[key] = value
-            
+
             return cls(start_node_id, end_node_id, kind, properties)
         except (KeyError, TypeError, ValueError):
             return None

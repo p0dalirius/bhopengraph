@@ -126,18 +126,18 @@ class Node(object):
         try:
             if "id" not in node_data:
                 return None
-            
+
             node_id = node_data["id"]
             kinds = node_data.get("kinds", [])
             properties_data = node_data.get("properties", {})
-            
+
             # Create Properties instance if properties data exists
             properties = None
             if properties_data:
                 properties = Properties()
                 for key, value in properties_data.items():
                     properties[key] = value
-            
+
             return cls(node_id, kinds, properties)
         except (KeyError, TypeError, ValueError):
             return None
