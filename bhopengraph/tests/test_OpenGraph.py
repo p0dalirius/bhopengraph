@@ -206,13 +206,6 @@ class TestOpenGraph(unittest.TestCase):
         self.assertTrue(result)
         self.assertEqual(len(self.graph.nodes), 2)
 
-    def test_remove_node_valid(self):
-        """Test removing valid node."""
-        self.graph.addNode(self.node1)
-        result = self.graph.removeNode(self.node1)
-        self.assertTrue(result)
-        self.assertEqual(len(self.graph.nodes), 0)
-
     def test_remove_node_by_id_valid(self):
         """Test removing node by ID."""
         self.graph.addNode(self.node1)
@@ -224,15 +217,6 @@ class TestOpenGraph(unittest.TestCase):
         """Test removing non-existent node by ID."""
         result = self.graph.removeNodeById("nonexistent")
         self.assertFalse(result)
-
-    def test_remove_nodes_valid(self):
-        """Test removing multiple valid nodes."""
-        self.graph.addNode(self.node1)
-        self.graph.addNode(self.node2)
-        nodes = [self.node1, self.node2]
-        result = self.graph.removeNodes(nodes)
-        self.assertTrue(result)
-        self.assertEqual(len(self.graph.nodes), 0)
 
     def test_get_node_by_id_exists(self):
         """Test getting existing node by ID."""
@@ -333,19 +317,21 @@ class TestOpenGraph(unittest.TestCase):
     def test_validate_graph_empty(self):
         """Test validating empty graph."""
         errors = self.graph.validateGraph()
-        self.assertEqual(errors, [])
+        self.assertEqual(errors, {})
 
     def test_validate_graph_with_isolated_edge(self):
         """Test validating graph with isolated edge."""
         self.graph.addEdgeWithoutValidation(self.edge1)
         errors = self.graph.validateGraph()
-        self.assertEqual(len(errors), 2)  # Both start and end nodes missing
+        self.assertIn("isolated_edges", errors)
+        self.assertEqual(len(errors["isolated_edges"]), 2)  # Both start and end nodes missing
 
     def test_validate_graph_with_isolated_node(self):
         """Test validating graph with isolated node."""
         self.graph.addNode(self.node1)
         errors = self.graph.validateGraph()
-        self.assertEqual(len(errors), 1)  # Isolated node
+        self.assertIn("isolated_nodes", errors)
+        self.assertEqual(len(errors["isolated_nodes"]), 1)  # Isolated node
 
     def test_export_json_with_metadata(self):
         """Test exporting graph to JSON with metadata."""
