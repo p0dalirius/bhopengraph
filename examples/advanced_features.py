@@ -286,8 +286,13 @@ def demonstrate_graph_analysis(graph):
     errors = graph.validateGraph()
     if errors:
         print("  Issues found:")
-        for error in errors:
-            print(f"    - {error}")
+        for error_type, error_list in errors.items():
+            if error_type == "isolated_edges":
+                print(f"    - {len(error_list)} orphaned edges:")
+                for error in error_list:
+                    print(f"      * Edge {error['edge_id']} references missing {error['issue']}: {error['node_id']}")
+            elif error_type == "isolated_nodes":
+                print(f"    - {len(error_list)} isolated nodes: {', '.join(error_list)}")
     else:
         print("  No validation issues found")
 

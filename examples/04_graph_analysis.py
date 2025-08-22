@@ -134,9 +134,15 @@ def main():
     errors = graph.validateGraph()
     
     if errors:
-        print(f"   ⚠️  Found {len(errors)} validation issues:")
-        for error in errors:
-            print(f"     - {error}")
+        total_issues = sum(len(error_list) for error_list in errors.values())
+        print(f"   ⚠️  Found {total_issues} validation issues:")
+        for error_type, error_list in errors.items():
+            if error_type == "isolated_edges":
+                print(f"     - {len(error_list)} orphaned edges:")
+                for error in error_list:
+                    print(f"       * Edge {error['edge_id']} references missing {error['issue']}: {error['node_id']}")
+            elif error_type == "isolated_nodes":
+                print(f"     - {len(error_list)} isolated nodes: {', '.join(error_list)}")
     else:
         print(f"   ✅ No validation issues found")
     
