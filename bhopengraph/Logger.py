@@ -41,6 +41,14 @@ class Logger(object):
         else:
             print("[%s] %s%s" % (timestamp, indent, message))
 
+    def error(self, message):
+        """
+        Print a message with timestamp
+        """
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        indent = "  │ " * self.__indent_level
+        print("[%s] [\x1b[91mERROR\x1b[0m] %s%s" % (timestamp, indent, message))
+
     def debug(self, message):
         """
         Print a debug message with timestamp
