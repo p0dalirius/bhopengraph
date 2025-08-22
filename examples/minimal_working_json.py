@@ -46,19 +46,19 @@ if __name__ == "__main__":
     )
     
     # Add nodes to graph
-    graph.addNode(bob_node)
-    graph.addNode(alice_node)
+    graph.add_node(bob_node)
+    graph.add_node(alice_node)
     
     # Create edge: Bob knows Alice
     knows_edge = Edge(
-        start_node_id=bob_node.id,      # Bob is the start
-        end_node_id=alice_node.id,      # Alice is the end
+        start_node=bob_node.id,      # Bob is the start
+        end_node=alice_node.id,      # Alice is the end
         kind="Knows"
     )
     
     
     # Add edge to graph
-    graph.addEdge(knows_edge)
+    graph.add_edge(knows_edge)
     
     # Export to file
-    graph.exportToFile("minimal_working_json.json")
+    graph.export_to_file("minimal_working_json.json")
