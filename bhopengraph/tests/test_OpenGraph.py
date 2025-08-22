@@ -324,7 +324,9 @@ class TestOpenGraph(unittest.TestCase):
         self.graph.addEdgeWithoutValidation(self.edge1)
         errors = self.graph.validateGraph()
         self.assertIn("isolated_edges", errors)
-        self.assertEqual(len(errors["isolated_edges"]), 2)  # Both start and end nodes missing
+        self.assertEqual(
+            len(errors["isolated_edges"]), 2
+        )  # Both start and end nodes missing
 
     def test_validate_graph_with_isolated_node(self):
         """Test validating graph with isolated node."""

@@ -5,7 +5,7 @@
 # Date created       : 21 Aug 2025
 
 
-def b_filesize(size: int) -> str:
+def filesize_string(size: int) -> str:
     """
     Convert a file size from bytes to a more readable format using the largest appropriate unit.
 

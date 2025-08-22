@@ -37,7 +37,7 @@ class OpenGraph(object):
 
     # Edges methods
 
-    def addEdge(self, edge: Edge) -> bool:
+    def add_edge(self, edge: Edge) -> bool:
         """
         Add an edge to the graph if it doesn't already exist and if the start and end nodes exist.
 
@@ -63,7 +63,7 @@ class OpenGraph(object):
         self.edges.append(edge)
         return True
 
-    def addEdges(self, edges: List[Edge]) -> bool:
+    def add_edges(self, edges: List[Edge]) -> bool:
         """
         Add a list of edges to the graph.
 
@@ -72,11 +72,11 @@ class OpenGraph(object):
         """
         success = True
         for edge in edges:
-            if not self.addEdge(edge):
+            if not self.add_edge(edge):
                 success = False
         return success
 
-    def addEdgeWithoutValidation(self, edge: Edge) -> bool:
+    def add_edge_without_validation(self, edge: Edge) -> bool:
         """
         Add an edge to the graph.
 
@@ -92,7 +92,7 @@ class OpenGraph(object):
         self.edges.append(edge)
         return True
 
-    def addEdgesWithoutValidation(self, edges: List[Edge]) -> bool:
+    def add_edges_without_validation(self, edges: List[Edge]) -> bool:
         """
         Add a list of edges to the graph without validation.
 
@@ -106,10 +106,10 @@ class OpenGraph(object):
             return False
 
         for edge in edges:
-            self.addEdgeWithoutValidation(edge)
+            self.add_edge_without_validation(edge)
         return True
 
-    def getEdgesByKind(self, kind: str) -> List[Edge]:
+    def get_edges_by_kind(self, kind: str) -> List[Edge]:
         """
         Get all edges of a specific kind.
 
@@ -121,7 +121,7 @@ class OpenGraph(object):
         """
         return [edge for edge in self.edges if edge.kind == kind]
 
-    def getEdgesFromNode(self, node_id: str) -> List[Edge]:
+    def get_edges_from_node(self, node_id: str) -> List[Edge]:
         """
         Get all edges starting from a specific node.
 
@@ -133,7 +133,7 @@ class OpenGraph(object):
         """
         return [edge for edge in self.edges if edge.start_node_id == node_id]
 
-    def getEdgesToNode(self, node_id: str) -> List[Edge]:
+    def get_edges_to_node(self, node_id: str) -> List[Edge]:
         """
         Get all edges ending at a specific node.
 
@@ -145,7 +145,7 @@ class OpenGraph(object):
         """
         return [edge for edge in self.edges if edge.end_node_id == node_id]
 
-    def getIsolatedEdges(self) -> List[Edge]:
+    def get_isolated_edges(self) -> List[Edge]:
         """
         Get all edges that have no start or end node.
         These are edges that are not connected to any other nodes in the graph.
@@ -160,7 +160,7 @@ class OpenGraph(object):
             or edge.end_node_id not in self.nodes
         ]
 
-    def getIsolatedEdgesCount(self) -> int:
+    def get_isolated_edges_count(self) -> int:
         """
         Get the total number of Isolated edges in the graph.
         These are edges that are not connected to any other nodes in the graph.
@@ -168,9 +168,9 @@ class OpenGraph(object):
         Returns:
             - int: Number of Isolated edges
         """
-        return len(self.getIsolatedEdges())
+        return len(self.get_isolated_edges())
 
-    def getEdgeCount(self) -> int:
+    def get_edge_count(self) -> int:
         """
         Get the total number of edges in the graph.
 
@@ -181,7 +181,7 @@ class OpenGraph(object):
 
     # Nodes methods
 
-    def addNode(self, node: Node) -> bool:
+    def add_node(self, node: Node) -> bool:
         """
         Add a node to the graph.
 
@@ -201,15 +201,15 @@ class OpenGraph(object):
         self.nodes[node.id] = node
         return True
 
-    def addNodes(self, nodes: List[Node]) -> bool:
+    def add_nodes(self, nodes: List[Node]) -> bool:
         """
         Add a list of nodes to the graph.
         """
         for node in nodes:
-            self.addNode(node)
+            self.add_node(node)
         return True
 
-    def addNodeWithoutValidation(self, node: Node) -> bool:
+    def add_node_without_validation(self, node: Node) -> bool:
         """
         Add a node to the graph without validation.
 
@@ -225,7 +225,7 @@ class OpenGraph(object):
         self.nodes[node.id] = node
         return True
 
-    def addNodesWithoutValidation(self, nodes: List[Node]) -> bool:
+    def add_nodes_without_validation(self, nodes: List[Node]) -> bool:
         """
         Add a list of nodes to the graph without validation.
 
@@ -239,10 +239,10 @@ class OpenGraph(object):
             return False
 
         for node in nodes:
-            self.addNodeWithoutValidation(node)
+            self.add_node_without_validation(node)
         return True
 
-    def getNodeById(self, id: str) -> Optional[Node]:
+    def get_node_by_id(self, id: str) -> Optional[Node]:
         """
         Get a node by ID.
 
@@ -254,7 +254,7 @@ class OpenGraph(object):
         """
         return self.nodes.get(id)
 
-    def getNodesByKind(self, kind: str) -> List[Node]:
+    def get_nodes_by_kind(self, kind: str) -> List[Node]:
         """
         Get all nodes of a specific kind.
 
@@ -266,7 +266,7 @@ class OpenGraph(object):
         """
         return [node for node in self.nodes.values() if node.has_kind(kind)]
 
-    def getNodeCount(self) -> int:
+    def get_node_count(self) -> int:
         """
         Get the total number of nodes in the graph.
 
@@ -275,7 +275,7 @@ class OpenGraph(object):
         """
         return len(self.nodes.keys())
 
-    def getIsolatedNodes(self) -> List[Node]:
+    def get_isolated_nodes(self) -> List[Node]:
         """
         Get all nodes that have no edges.
                 These are nodes that are not connected to any other nodes in the graph.
@@ -286,10 +286,11 @@ class OpenGraph(object):
         return [
             node
             for node in self.nodes.values()
-            if not self.getEdgesFromNode(node.id) and not self.getEdgesToNode(node.id)
+            if not self.get_edges_from_node(node.id)
+            and not self.get_edges_to_node(node.id)
         ]
 
-    def getIsolatedNodesCount(self) -> int:
+    def get_isolated_nodes_count(self) -> int:
         """
         Get the total number of Isolated nodes in the graph.
         These are nodes that are not connected to any other nodes in the graph.
@@ -297,9 +298,9 @@ class OpenGraph(object):
         Returns:
             - int: Number of Isolated nodes
         """
-        return len(self.getIsolatedNodes())
+        return len(self.get_isolated_nodes())
 
-    def removeNodeById(self, id: str) -> bool:
+    def remove_node_by_id(self, id: str) -> bool:
         """
         Remove a node and all its associated edges from the graph.
 
@@ -326,7 +327,7 @@ class OpenGraph(object):
 
     # Paths methods
 
-    def findPaths(
+    def find_paths(
         self, start_id: str, end_id: str, max_depth: int = 10
     ) -> List[List[str]]:
         """
@@ -357,7 +358,7 @@ class OpenGraph(object):
             if current_depth >= max_depth:
                 continue
 
-            for edge in self.getEdgesFromNode(current_id):
+            for edge in self.get_edges_from_node(current_id):
                 next_id = edge.end_node_id
                 # Check if next_id is not already in the current path (prevents cycles)
                 if next_id not in path:
@@ -369,7 +370,7 @@ class OpenGraph(object):
 
         return paths
 
-    def getConnectedComponents(self) -> List[Set[str]]:
+    def get_connected_components(self) -> List[Set[str]]:
         """
         Find all connected components in the graph.
 
@@ -391,10 +392,10 @@ class OpenGraph(object):
                         component.add(current)
 
                         # Add all adjacent nodes
-                        for edge in self.getEdgesFromNode(current):
+                        for edge in self.get_edges_from_node(current):
                             if edge.end_node_id not in visited:
                                 stack.append(edge.end_node_id)
-                        for edge in self.getEdgesToNode(current):
+                        for edge in self.get_edges_to_node(current):
                             if edge.start_node_id not in visited:
                                 stack.append(edge.start_node_id)
 
@@ -402,7 +403,7 @@ class OpenGraph(object):
 
         return components
 
-    def validateGraph(self) -> dict:
+    def validate_graph(self) -> dict:
         """
         Validate the graph for common issues.
 
@@ -421,9 +422,9 @@ class OpenGraph(object):
                 foundIsolatedEdges = True
                 errors["isolated_edges"].append(
                     {
-                        "edge_id": edge.kind,
+                        "edge": edge,
+                        "missing_type": "start_node",
                         "node_id": edge.start_node_id,
-                        "issue": "start_node_not_found",
                     }
                 )
 
@@ -431,17 +432,23 @@ class OpenGraph(object):
                 foundIsolatedEdges = True
                 errors["isolated_edges"].append(
                     {
-                        "edge_id": edge.kind,
+                        "edge": edge,
+                        "missing_type": "end_node",
                         "node_id": edge.end_node_id,
-                        "issue": "end_node_not_found",
                     }
                 )
 
         # Check for nodes without edges
         for node_id in self.nodes:
-            if not self.getEdgesFromNode(node_id) and not self.getEdgesToNode(node_id):
+            if not self.get_edges_from_node(node_id) and not self.get_edges_to_node(
+                node_id
+            ):
                 foundIsolatedNodes = True
-                errors["isolated_nodes"].append(node_id)
+                errors["isolated_nodes"].append(
+                    {
+                        "node_id": node_id,
+                    }
+                )
 
         if not foundIsolatedEdges and "isolated_edges" in errors:
             del errors["isolated_edges"]
@@ -453,7 +460,7 @@ class OpenGraph(object):
 
     # Export methods
 
-    def exportJSON(self, include_metadata: bool = True) -> str:
+    def export_json(self, include_metadata: bool = True) -> str:
         """
         Export the graph to JSON format compatible with BloodHound OpenGraph.
 
@@ -475,7 +482,7 @@ class OpenGraph(object):
 
         return json.dumps(graph_data, indent=2)
 
-    def exportToFile(self, filename: str, include_metadata: bool = True) -> bool:
+    def export_to_file(self, filename: str, include_metadata: bool = True) -> bool:
         """
         Export the graph to a JSON file.
 
@@ -487,26 +494,22 @@ class OpenGraph(object):
           - bool: True if export was successful, False otherwise
         """
         try:
-            json_data = self.exportJSON(include_metadata)
+            json_data = self.export_json(include_metadata)
             with open(filename, "w") as f:
                 f.write(json_data)
             return True
         except (IOError, OSError, TypeError):
             return False
 
-    def exportToDict(self) -> Dict:
+    def export_to_dict(self) -> Dict:
         """
         Export the graph to a dictionary.
         """
 
         return {
             "graph": {
-                "nodes": [
-                    node.to_dict() for node in self.nodes.values()
-                ],
-                "edges": [
-                    edge.to_dict() for edge in self.edges
-                ],
+                "nodes": [node.to_dict() for node in self.nodes.values()],
+                "edges": [edge.to_dict() for edge in self.edges],
             },
             "metadata": {
                 "source_kind": (self.source_kind if self.source_kind else None)
@@ -515,13 +518,13 @@ class OpenGraph(object):
 
     # Import methods
 
-    def importFromJSON(self, json_data: str) -> bool:
+    def import_from_json(self, json_data: str) -> bool:
         """
         Load graph data from a JSON string.
         """
-        return self.importFromDict(json.loads(json_data))
+        return self.import_from_dict(json.loads(json_data))
 
-    def importFromFile(self, filename: str) -> bool:
+    def import_from_file(self, filename: str) -> bool:
         """
         Load graph data from a JSON file.
 
@@ -534,11 +537,11 @@ class OpenGraph(object):
         try:
             with open(filename, "r") as f:
                 data = json.load(f)
-            return self.importFromDict(data)
+            return self.import_from_dict(data)
         except (IOError, OSError, json.JSONDecodeError):
             return False
 
-    def importFromDict(self, data: Dict) -> bool:
+    def import_from_dict(self, data: Dict) -> bool:
         """
         Load graph data from a dictionary (typically from JSON).
 
