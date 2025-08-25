@@ -6,6 +6,7 @@
 
 import argparse
 import os
+import json
 
 from bhopengraph import OpenGraph
 from bhopengraph.Logger import Logger
@@ -25,7 +26,7 @@ def parseArgs():
         "--debug", dest="debug", action="store_true", default=False, help="Debug mode."
     )
 
-    # Creating the "battle" subparser ==============================================================================================================
+    # Creating the "info" subparser ==============================================================================================================
     mode_info = argparse.ArgumentParser(add_help=False)
     mode_info.add_argument(
         "--file",
@@ -34,10 +35,35 @@ def parseArgs():
         default=None,
         help="OpenGraph JSON file to process",
     )
+    mode_info.add_argument(
+        "--json",
+        dest="json",
+        action="store_true",
+        default=False,
+        help="Output info in JSON format",
+    )
+
+    # Creating the "validate" subparser ==============================================================================================================
+    mode_validate = argparse.ArgumentParser(add_help=False)
+    mode_validate.add_argument(
+        "--file",
+        dest="file",
+        required=True,
+        default=None,
+        help="OpenGraph JSON file to process",
+    )
+    mode_validate.add_argument(
+        "--json",
+        dest="json",
+        action="store_true",
+        default=False,
+        help="Output validation errors in JSON format",
+    )
 
     # Adding the subparsers to the base parser
     subparsers = parser.add_subparsers(help="Mode", dest="mode", required=True)
     subparsers.add_parser("info", parents=[mode_info], help="Info mode")
+    subparsers.add_parser("validate", parents=[mode_validate], help="Validate mode")
 
     return parser.parse_args()
 
@@ -130,6 +156,65 @@ def main():
 
         else:
             logger.error(f"File {options.file} does not exist")
+            return
+
+    if options.mode == "validate":
+        if os.path.exists(options.file):
+            logger.debug(f"[+] Loading OpenGraph data from {options.file} (size %s)" % filesize_string(os.path.getsize(options.file)))
+            graph = OpenGraph()
+            graph.import_from_file(options.file)
+            logger.debug("  └── OpenGraph successfully loaded")
+
+            # Validate the graph
+            logger.debug("[+] OpenGraph validation ...")
+            validationErrors = graph.validate_graph()
+            
+            if options.json:
+                print(json.dumps(validationErrors, indent=4))
+            else:
+                if validationErrors:
+                    total_errors = sum(
+                        len(error_list) for error_list in validationErrors.values()
+                    )
+                    logger.log(f"  └── ❌ Validation errors: ({total_errors})")
+
+                    for error_type, error_list in validationErrors.items():
+                        if error_type == "isolated_edges":
+                            logger.log(f"  │   ├── Isolated edges: {len(error_list)}")
+                            k = 0
+                            for error in error_list:
+                                k += 1
+                                if k == len(error_list):
+                                    logger.log(
+                                        f"  │   │   └── Edge \"\x1b[96m{error['edge'].get_kind()}\x1b[0m\" references missing {error['missing_type']}: \"\x1b[96m{error['node_id']}\x1b[0m\""
+                                    )
+                                else:
+                                    logger.log(
+                                        f"  │   │   ├── Edge \"\x1b[96m{error['edge'].get_kind()}\x1b[0m\" references missing {error['missing_type']}: \"\x1b[96m{error['node_id']}\x1b[0m\""
+                                    )
+                        elif error_type == "isolated_nodes":
+                            logger.log(f"  │   ├── Isolated nodes: {len(error_list)}")
+                            k = 0
+                            for error in error_list:
+                                k += 1
+                                if k == len(error_list):
+                                    logger.log(
+                                        f"  │   │   └── Node \"\x1b[96m{error['node_id']}\x1b[0m\" is isolated"
+                                    )
+                                else:
+                                    logger.log(
+                                        f"  │   │   ├── Node \"\x1b[96m{error['node_id']}\x1b[0m\" is isolated"
+                                    )
+                    logger.log("  │   └──")
+                else:
+                    logger.log("  │   └── ✅ No validation errors")
+                    logger.log("  └──")
+
+        else:
+            if options.json:
+                print(json.dumps({"error": f"File {options.file} does not exist"}, indent=4))
+            else:
+                logger.error(f"File {options.file} does not exist")
             return
 
 
