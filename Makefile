@@ -17,15 +17,15 @@ uninstall:
 	pip uninstall bhopengraph --yes --break-system-packages
 
 install: build
-	pip install . --break-system-packages
+	python3 -m pip install . --break-system-packages
 
 build:
 	python3 -m pip uninstall bhopengraph --yes --break-system-packages
-	python3 -m pip install .[build] --break-system-packages
+	python3 -m pip install build --break-system-packages
 	python3 -m build --wheel
 
 upload: build
-	python3 -m pip install .[twine] --break-system-packages
+	python3 -m pip install twine --break-system-packages
 	python3 -m twine upload dist/*
 
 test:

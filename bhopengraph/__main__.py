@@ -5,8 +5,8 @@
 # Date created       : 21 Aug 2025
 
 import argparse
-import os
 import json
+import os
 
 from bhopengraph import OpenGraph
 from bhopengraph.Logger import Logger
@@ -160,7 +160,10 @@ def main():
 
     if options.mode == "validate":
         if os.path.exists(options.file):
-            logger.debug(f"[+] Loading OpenGraph data from {options.file} (size %s)" % filesize_string(os.path.getsize(options.file)))
+            logger.debug(
+                f"[+] Loading OpenGraph data from {options.file} (size %s)"
+                % filesize_string(os.path.getsize(options.file))
+            )
             graph = OpenGraph()
             graph.import_from_file(options.file)
             logger.debug("  └── OpenGraph successfully loaded")
@@ -168,7 +171,7 @@ def main():
             # Validate the graph
             logger.debug("[+] OpenGraph validation ...")
             validationErrors = graph.validate_graph()
-            
+
             if options.json:
                 print(json.dumps(validationErrors, indent=4))
             else:
@@ -212,7 +215,11 @@ def main():
 
         else:
             if options.json:
-                print(json.dumps({"error": f"File {options.file} does not exist"}, indent=4))
+                print(
+                    json.dumps(
+                        {"error": f"File {options.file} does not exist"}, indent=4
+                    )
+                )
             else:
                 logger.error(f"File {options.file} does not exist")
             return
