@@ -18,8 +18,11 @@ class OpenGraph(object):
     Follows BloodHound OpenGraph schema requirements and best practices.
 
     Sources:
+
     - https://bloodhound.specterops.io/opengraph/schema#opengraph
+
     - https://bloodhound.specterops.io/opengraph/schema#minimal-working-json
+    
     - https://bloodhound.specterops.io/opengraph/best-practices
     """
 

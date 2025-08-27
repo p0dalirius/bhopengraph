@@ -55,21 +55,21 @@ alice_node = Node(
 )
 
 # Add nodes to graph
-graph.addNode(bob_node)
-graph.addNode(alice_node)
+graph.add_node(bob_node)
+graph.add_node(alice_node)
 
 # Create edge: Bob knows Alice
 knows_edge = Edge(
-    start_node_id=alice_node.id,
-    end_node_id=bob_node.id,
+    start_node=alice_node.id,
+    end_node=bob_node.id,
     kind="Knows"
 )
 
 # Add edge to graph
-graph.addEdge(knows_edge)
+graph.add_edge(knows_edge)
 
 # Export to file
-graph.exportToFile("minimal_example.json")
+graph.export_to_file("minimal_example.json")
 ```
 
 This gives us the following [Minimal Working JSON](https://bloodhound.specterops.io/opengraph/schema#minimal-working-json) as per the documentation:
