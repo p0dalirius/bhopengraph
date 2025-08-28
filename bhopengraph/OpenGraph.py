@@ -22,7 +22,7 @@ class OpenGraph(object):
     - https://bloodhound.specterops.io/opengraph/schema#opengraph
 
     - https://bloodhound.specterops.io/opengraph/schema#minimal-working-json
-    
+
     - https://bloodhound.specterops.io/opengraph/best-practices
     """
 
