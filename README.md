@@ -1,4 +1,4 @@
-# bhopengraph
+# bhopengraph: A python library to create BloodHound OpenGraphs 
 
 <p align="center">
   A python library to create BloodHound OpenGraphs easily
