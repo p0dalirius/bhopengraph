@@ -1,6 +1,6 @@
 [project]
 name = "bhopengraph"
-version = "1.1.0"
+version = "1.2.0"
 description = "A python library to create BloodHound OpenGraphs easily"
 readme = "README.md"
 requires-python = ">=3.11"
