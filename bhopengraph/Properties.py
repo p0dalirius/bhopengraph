@@ -4,7 +4,20 @@
 # Author             : Remi Gascou (@podalirius_)
 # Date created       : 12 Aug 2025
 
-
+# https://bloodhound.specterops.io/opengraph/schema#node-json
+PROPERTIES_SCHEMA = {
+    "type": ["object", "null"],
+    "description": "A key-value map of node attributes. Values must not be objects. If a value is an array, it must contain only primitive types (e.g., strings, numbers, booleans) and must be homogeneous (all items must be of the same type).",
+    "additionalProperties": {
+        "type": ["string", "number", "boolean", "array"],
+        "items": {
+            "not": {
+                "type": "object"
+            }
+        }
+    }
+}
+      
 class Properties(object):
     """
     Properties class for storing arbitrary key-value pairs for nodes and edges.
@@ -30,7 +43,7 @@ class Properties(object):
           - key (str): Property name
           - value: Property value (must be primitive type: str, int, float, bool, None, list)
         """
-        if self._is_valid_property_value(value):
+        if self.is_valid_property_value(value):
             self._properties[key] = value
         else:
             raise ValueError(
@@ -85,17 +98,58 @@ class Properties(object):
         """Clear all properties."""
         self._properties.clear()
 
-    def _is_valid_property_value(self, value) -> bool:
+    def validate(self) -> tuple[bool, list[str]]:
         """
-        Check if a value is a valid property type.
-
-        Args:
-          - value: Value to check
-
+        Validate all properties according to OpenGraph schema rules.
+        
         Returns:
-          - bool: True if value is valid, False otherwise
+          - tuple[bool, list[str]]: (is_valid, list_of_errors)
         """
-        return value is None or isinstance(value, (str, int, float, bool, list))
+        errors = []
+        
+        for key, value in self._properties.items():
+            if not self.is_valid_property_value(value):
+                errors.append(f"Property '{key}' has invalid value type '{type(value)}' not in (str, int, float, bool, None, list)")
+        
+        return len(errors) == 0, errors
+    
+    def is_valid_property_value(self, value) -> bool:
+        """
+        Validate a single property value according to OpenGraph schema rules.
+        
+        Args:
+          - value: The property value to validate
+            
+        Returns:
+          - bool: True if valid, False otherwise
+        """
+        # Check if value is None (allowed)
+        if value is None:
+            return True
+            
+        # Check if value is a primitive type
+        if isinstance(value, (str, int, float, bool)):
+            return True
+        
+        # Check if value is an array
+        if isinstance(value, list):
+            if not value:  # Empty array is valid
+                return True
+            
+            # Check if all items are of the same primitive type
+            first_type = type(value[0])
+            if first_type not in (str, int, float, bool):
+                return False
+            
+            # Check that all items are the same type and not objects
+            for item in value:
+                if type(item) != first_type or isinstance(item, (dict, list)):
+                    return False
+            
+            return True
+        
+        # Objects are not allowed
+        return False
 
     def to_dict(self) -> dict:
         """
@@ -120,6 +174,24 @@ class Properties(object):
 
     def __delitem__(self, key: str):
         self.remove_property(key)
+
+    def items(self):
+        """
+        Return a view of the properties as (key, value) pairs.
+        
+        Returns:
+          - dict_items: View of properties as key-value pairs
+        """
+        return self._properties.items()
+    
+    def keys(self):
+        """
+        Return a view of the property keys.
+        
+        Returns:
+          - dict_keys: View of property keys
+        """
+        return self._properties.keys()
 
     def __repr__(self) -> str:
         return f"Properties({self._properties})"

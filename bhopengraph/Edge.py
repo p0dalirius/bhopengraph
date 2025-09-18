@@ -6,6 +6,129 @@
 
 from bhopengraph.Properties import Properties
 
+# https://bloodhound.specterops.io/opengraph/schema#edge-json
+EDGE_SCHEMA = {
+    "title": "Generic Ingest Edge",
+    "description": "Defines an edge between two nodes in a generic graph ingestion system. Each edge specifies a start and end node using either a unique identifier (id) or a name-based lookup. A kind is required to indicate the relationship type. Optional properties may include custom attributes. You may optionally constrain the start or end node to a specific kind using the kind field inside each reference.",
+    "type": "object",
+    "properties": {
+        "start": {
+            "type": "object",
+            "properties": {
+                "match_by": {
+                    "type": "string",
+                    "enum": ["id", "name"],
+                    "default": "id",
+                    "description": "Whether to match the start node by its unique object ID or by its name property."
+                },
+                "value": {
+                    "type": "string",
+                    "description": "The value used for matching — either an object ID or a name, depending on match_by."
+                },
+                "kind": {
+                    "type": "string",
+                    "description": "Optional kind filter; the referenced node must have this kind."
+                }
+            },
+            "required": ["value"]
+        },
+        "end": {
+            "type": "object",
+            "properties": {
+                "match_by": {
+                    "type": "string",
+                    "enum": ["id", "name"],
+                    "default": "id",
+                    "description": "Whether to match the end node by its unique object ID or by its name property."
+                },
+                "value": {
+                    "type": "string",
+                    "description": "The value used for matching — either an object ID or a name, depending on match_by."
+                },
+                "kind": {
+                    "type": "string",
+                    "description": "Optional kind filter; the referenced node must have this kind."
+                }
+            },
+            "required": ["value"]
+        },
+        "kind": { "type": "string" },
+        "properties": {
+            "type": ["object", "null"],
+            "description": "A key-value map of edge attributes. Values must not be objects. If a value is an array, it must contain only primitive types (e.g., strings, numbers, booleans) and must be homogeneous (all items must be of the same type).",
+            "additionalProperties": {
+                "type": ["string", "number", "boolean", "array"],
+                "items": {
+                    "not": {
+                        "type": "object"
+                    }
+                }
+            }
+        }
+    },
+    "required": ["start", "end", "kind"],
+    "examples": [
+        {
+            "start": {
+                "match_by": "id",
+                "value": "user-1234"
+            },
+            "end": {
+                "match_by": "id",
+                "value": "server-5678"
+            },
+            "kind": "HasSession",
+            "properties": {
+                "timestamp": "2025-04-16T12:00:00Z",
+                "duration_minutes": 45
+            }
+        },
+        {
+            "start": {
+                "match_by": "name",
+                "value": "alice",
+                "kind": "User"
+            },
+            "end": {
+                "match_by": "name",
+                "value": "file-server-1",
+                "kind": "Server"
+            },
+            "kind": "AccessedResource",
+            "properties": {
+                "via": "SMB",
+                "sensitive": True
+            }
+        },
+        {
+            "start": {
+                "value": "admin-1"
+            },
+            "end": {
+                "value": "domain-controller-9"
+            },
+            "kind": "AdminTo",
+            "properties": {
+                "reason": "elevated_permissions",
+                "confirmed": False
+            }
+        },
+        {
+            "start": {
+                "match_by": "name",
+                "value": "Printer-007"
+            },
+            "end": {
+                "match_by": "id",
+                "value": "network-42"
+            },
+            "kind": "ConnectedTo",
+            "properties": None
+        }
+    ]
+}
+
+
 
 class Edge(object):
     """
@@ -181,11 +304,22 @@ class Edge(object):
     def get_unique_id(self) -> str:
         """
         Get a unique ID for the edge.
+
+        Returns:
+          - str: Unique ID for the edge
         """
         return f"[{self.start_match_by}:{self.start_node}]-({self.kind})->[{self.end_match_by}:{self.end_node}]"
 
     def __eq__(self, other):
-        """Check if two edges are equal based on their start, end, and kind."""
+        """
+        Check if two edges are equal based on their start, end, and kind.
+
+        Args:
+          - other (Edge): The other edge to compare to
+
+        Returns:
+          - bool: True if the edges are equal, False otherwise
+        """
         if isinstance(other, Edge):
             return (
                 self.start_node == other.start_node
@@ -195,8 +329,60 @@ class Edge(object):
         return False
 
     def __hash__(self):
-        """Hash based on start, end, and kind for use in sets and as dictionary keys."""
+        """
+        Hash based on start, end, and kind for use in sets and as dictionary keys.
+
+        Returns:
+          - int: Hash of the start, end, and kind
+        """
         return hash((self.start_node, self.end_node, self.kind))
+
+    def validate(self) -> tuple[bool, list[str]]:
+        """
+        Validate the edge against the EDGE_SCHEMA.
+        
+        Returns:
+            - tuple[bool, list[str]]: (is_valid, list_of_errors)
+        """
+        errors = []
+        
+        # Validate required fields
+        if not self.start_node or self.start_node is None:
+            errors.append("Start node cannot be empty")
+        elif not isinstance(self.start_node, str):
+            errors.append("Start node must be a string")
+            
+        if not self.end_node or self.end_node is None:
+            errors.append("End node cannot be empty")
+        elif not isinstance(self.end_node, str):
+            errors.append("End node must be a string")
+            
+        if not self.kind or self.kind is None:
+            errors.append("Edge kind cannot be empty")
+        elif not isinstance(self.kind, str):
+            errors.append("Edge kind must be a string")
+        
+        # Validate match_by values
+        if not isinstance(self.start_match_by, str):
+            errors.append("Start match_by must be a string")
+        elif self.start_match_by not in ["id", "name"]:
+            errors.append("Start match_by must be either 'id' or 'name'")
+            
+        if not isinstance(self.end_match_by, str):
+            errors.append("End match_by must be a string")
+        elif self.end_match_by not in ["id", "name"]:
+            errors.append("End match_by must be either 'id' or 'name'")
+        
+        # Validate properties if they exist
+        if self.properties is not None:
+            if not isinstance(self.properties, Properties):
+                errors.append("Properties must be a Properties instance")
+            else:
+                is_props_valid, prop_errors = self.properties.validate()
+                if not is_props_valid:
+                    errors.extend(prop_errors)
+        
+        return len(errors) == 0, errors
 
     def __repr__(self) -> str:
         return f"Edge(start='{self.start_node}', end='{self.end_node}', kind='{self.kind}', properties={self.properties})"

@@ -60,11 +60,50 @@ def parseArgs():
         help="Output validation errors in JSON format",
     )
 
+    # Mode paths
+    mode_showpaths = argparse.ArgumentParser(add_help=False)
+    mode_showpaths.add_argument(
+        "--file",
+        dest="file",
+        required=True,
+        default=None,
+        help="OpenGraph JSON file to process",
+    )
+    mode_showpaths.add_argument(
+        "--start-node-kind",
+        dest="start_node_kind",
+        required=True,
+        default=None,
+        help="Start node kind, This will be used to find the start node in the graph. This is required to find the start node in the graph",
+    )
+    mode_showpaths.add_argument(
+        "--start-node-id",
+        dest="start_node_id",
+        required=True,
+        default=None,
+        help="Start node ID, This will be used to find the start node in the graph. This is required to find the start node in the graph",
+    )
+    mode_showpaths.add_argument(
+        "--end-node-id",
+        dest="end_node_id",
+        required=True,
+        default=None,
+        help="End node ID, This will be used to find the end node in the graph. This is required to find the end node in the graph",
+    )
+    mode_showpaths.add_argument(
+        "--max-depth",
+        dest="max_depth",
+        type=int,
+        default=10,
+        help="Maximum path depth to search (default: 10)",
+    )
+
     # Adding the subparsers to the base parser
     subparsers = parser.add_subparsers(help="Mode", dest="mode", required=True)
     subparsers.add_parser("info", parents=[mode_info], help="Info mode")
     subparsers.add_parser("validate", parents=[mode_validate], help="Validate mode")
-
+    subparsers.add_parser("showpaths", parents=[mode_showpaths], help="Show paths mode")
+    
     return parser.parse_args()
 
 
@@ -115,41 +154,19 @@ def main():
             logger.log("  └──")
 
             logger.log("[+] OpenGraph validation ...")
-            validationErrors = graph.validate_graph()
-            if validationErrors:
-                total_errors = sum(
-                    len(error_list) for error_list in validationErrors.values()
-                )
+            is_valid, validation_errors = graph.validate_graph()
+            if not is_valid:
+                total_errors = len(validation_errors)
                 logger.log(f"  ├── ❌ Validation errors: ({total_errors})")
 
-                for error_type, error_list in validationErrors.items():
-                    if error_type == "isolated_edges":
-                        logger.log(f"  │   ├── Isolated edges: {len(error_list)}")
-                        k = 0
-                        for error in error_list:
-                            k += 1
-                            if k == len(error_list):
-                                logger.log(
-                                    f"  │   │   └── Edge \"\x1b[96m{error['edge'].get_kind()}\x1b[0m\" references missing {error['missing_type']}: \"\x1b[96m{error['node_id']}\x1b[0m\""
-                                )
-                            else:
-                                logger.log(
-                                    f"  │   │   ├── Edge \"\x1b[96m{error['edge'].get_kind()}\x1b[0m\" references missing {error['missing_type']}: \"\x1b[96m{error['node_id']}\x1b[0m\""
-                                )
-                    elif error_type == "isolated_nodes":
-                        logger.log(f"  │   ├── Isolated nodes: {len(error_list)}")
-                        k = 0
-                        for error in error_list:
-                            k += 1
-                            if k == len(error_list):
-                                logger.log(
-                                    f"  │   │   └── Node \"\x1b[96m{error['node_id']}\x1b[0m\" is isolated"
-                                )
-                            else:
-                                logger.log(
-                                    f"  │   │   ├── Node \"\x1b[96m{error['node_id']}\x1b[0m\" is isolated"
-                                )
-                logger.log("  │   └──")
+                k = 0
+                for error in validation_errors:
+                    k += 1
+                    if k == len(validation_errors):
+                        logger.log(f"  │   └── {error}")
+                    else:
+                        logger.log(f"  │   ├── {error}")
+                logger.log("  └──")
             else:
                 logger.log("  │   └── ✅ No validation errors")
             logger.log("  └──")
@@ -158,7 +175,7 @@ def main():
             logger.error(f"File {options.file} does not exist")
             return
 
-    if options.mode == "validate":
+    elif options.mode == "validate":
         if os.path.exists(options.file):
             logger.debug(
                 f"[+] Loading OpenGraph data from {options.file} (size %s)"
@@ -169,46 +186,28 @@ def main():
             logger.debug("  └── OpenGraph successfully loaded")
 
             # Validate the graph
-            logger.debug("[+] OpenGraph validation ...")
-            validationErrors = graph.validate_graph()
+            logger.log("[+] OpenGraph validation ...")
+            is_valid, validation_errors = graph.validate_graph()
 
             if options.json:
-                print(json.dumps(validationErrors, indent=4))
+                result = {
+                    "valid": is_valid,
+                    "errors": validation_errors
+                }
+                print(json.dumps(result, indent=4))
             else:
-                if validationErrors:
-                    total_errors = sum(
-                        len(error_list) for error_list in validationErrors.values()
-                    )
+                if not is_valid:
+                    total_errors = len(validation_errors)
                     logger.log(f"  └── ❌ Validation errors: ({total_errors})")
 
-                    for error_type, error_list in validationErrors.items():
-                        if error_type == "isolated_edges":
-                            logger.log(f"  │   ├── Isolated edges: {len(error_list)}")
-                            k = 0
-                            for error in error_list:
-                                k += 1
-                                if k == len(error_list):
-                                    logger.log(
-                                        f"  │   │   └── Edge \"\x1b[96m{error['edge'].get_kind()}\x1b[0m\" references missing {error['missing_type']}: \"\x1b[96m{error['node_id']}\x1b[0m\""
-                                    )
-                                else:
-                                    logger.log(
-                                        f"  │   │   ├── Edge \"\x1b[96m{error['edge'].get_kind()}\x1b[0m\" references missing {error['missing_type']}: \"\x1b[96m{error['node_id']}\x1b[0m\""
-                                    )
-                        elif error_type == "isolated_nodes":
-                            logger.log(f"  │   ├── Isolated nodes: {len(error_list)}")
-                            k = 0
-                            for error in error_list:
-                                k += 1
-                                if k == len(error_list):
-                                    logger.log(
-                                        f"  │   │   └── Node \"\x1b[96m{error['node_id']}\x1b[0m\" is isolated"
-                                    )
-                                else:
-                                    logger.log(
-                                        f"  │   │   ├── Node \"\x1b[96m{error['node_id']}\x1b[0m\" is isolated"
-                                    )
-                    logger.log("  │   └──")
+                    k = 0
+                    for error in validation_errors:
+                        k += 1
+                        if k == len(validation_errors):
+                            logger.log(f"  │   └── {error}")
+                        else:
+                            logger.log(f"  │   ├── {error}")
+                    logger.log("  └──")
                 else:
                     logger.log("  │   └── ✅ No validation errors")
                     logger.log("  └──")
@@ -223,6 +222,25 @@ def main():
             else:
                 logger.error(f"File {options.file} does not exist")
             return
+
+    elif options.mode == "showpaths":
+        if os.path.exists(options.file):
+            logger.debug(
+                f"[+] Loading OpenGraph data from {options.file} (size %s)"
+                % filesize_string(os.path.getsize(options.file))
+            )
+            graph = OpenGraph()
+            graph.import_from_file(options.file)
+            logger.debug("  └── OpenGraph successfully loaded")
+
+            # Find paths
+            logger.debug("[+] Finding paths ...")
+            paths = graph.find_paths(options.start_node_id, options.end_node_id, options.max_depth)
+
+            if options.json:
+                print(json.dumps(paths, indent=4))
+            else:
+                logger.debug(f"  └── Paths: {paths}")
 
 
 if __name__ == "__main__":

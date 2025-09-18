@@ -25,12 +25,12 @@ class TestNode(unittest.TestCase):
         self.assertIsInstance(node.properties, Properties)
 
     def test_init_with_empty_id_raises_error(self):
-        """Test that Node initialization with empty ID raises ValueError."""
+        """Test that Node initialization with empty ID raises an error."""
         with self.assertRaises(ValueError):
             Node("", ["User"])
 
     def test_init_with_none_id_raises_error(self):
-        """Test that Node initialization with None ID raises ValueError."""
+        """Test that Node initialization with None ID raises an error."""
         with self.assertRaises(ValueError):
             Node(None, ["User"])
 
@@ -143,6 +143,97 @@ class TestNode(unittest.TestCase):
         self.assertIn("test_id", repr_str)
         self.assertIn("User", repr_str)
         self.assertIn("Properties", repr_str)
+
+    def test_validate_empty_id(self):
+        """Test validation with empty ID."""
+        with self.assertRaises(ValueError) as context:
+            Node("", ["User"])
+        self.assertIn("Node ID cannot be empty", str(context.exception))
+
+    def test_validate_none_id(self):
+        """Test validation with None ID."""
+        with self.assertRaises(ValueError) as context:
+            Node(None, ["User"])
+        self.assertIn("Node ID cannot be empty", str(context.exception))
+
+    def test_validate_non_string_id(self):
+        """Test validation with non-string ID."""
+        node = Node(123, ["User"])
+        is_valid, errors = node.validate()
+        self.assertFalse(is_valid)
+        self.assertIn("Node ID must be a string", errors)
+
+    def test_validate_zero_kinds(self):
+        """Test validation with zero kinds."""
+        node = Node("test_id", [])
+        is_valid, errors = node.validate()
+        self.assertFalse(is_valid)
+        self.assertIn("Node must have at least one kind", errors)
+
+    def test_validate_one_kind(self):
+        """Test validation with one kind."""
+        node = Node("test_id", ["User"])
+        is_valid, errors = node.validate()
+        self.assertTrue(is_valid)
+        self.assertEqual(errors, [])
+
+    def test_validate_two_kinds(self):
+        """Test validation with two kinds."""
+        node = Node("test_id", ["User", "Admin"])
+        is_valid, errors = node.validate()
+        self.assertTrue(is_valid)
+        self.assertEqual(errors, [])
+
+    def test_validate_three_kinds(self):
+        """Test validation with three kinds."""
+        node = Node("test_id", ["User", "Admin", "Manager"])
+        is_valid, errors = node.validate()
+        self.assertTrue(is_valid)
+        self.assertEqual(errors, [])
+
+    def test_validate_four_kinds(self):
+        """Test validation with four kinds."""
+        node = Node("test_id", ["User", "Admin", "Manager", "Owner"])
+        is_valid, errors = node.validate()
+        self.assertFalse(is_valid)
+        self.assertIn("Node can have at most 3 kinds", errors)
+
+    def test_validate_five_kinds(self):
+        """Test validation with five kinds."""
+        node = Node("test_id", ["User", "Admin", "Manager", "Owner", "Guest"])
+        is_valid, errors = node.validate()
+        self.assertFalse(is_valid)
+        self.assertIn("Node can have at most 3 kinds", errors)
+
+    def test_validate_non_string_kind(self):
+        """Test validation with non-string kind."""
+        node = Node("test_id", ["User", 123, "Admin"])
+        is_valid, errors = node.validate()
+        self.assertFalse(is_valid)
+        self.assertIn("Kind at index 1 must be a string", errors)
+
+    def test_validate_non_list_kinds(self):
+        """Test validation with non-list kinds."""
+        node = Node("test_id", "User")
+        is_valid, errors = node.validate()
+        self.assertFalse(is_valid)
+        self.assertIn("Kinds must be a list", errors)
+
+    def test_validate_invalid_properties(self):
+        """Test validation with invalid properties."""
+        from bhopengraph.Properties import Properties
+        props = Properties()
+        props._properties = {"invalid": {"nested": "object"}}  # Directly set invalid property
+        node = Node("test_id", ["User"], props)
+        is_valid, errors = node.validate()
+        self.assertFalse(is_valid)
+        self.assertTrue(any("invalid" in error for error in errors))
+
+    def test_validate_valid_node(self):
+        """Test validation with completely valid node."""
+        is_valid, errors = self.node.validate()
+        self.assertTrue(is_valid)
+        self.assertEqual(errors, [])
 
 
 if __name__ == "__main__":
