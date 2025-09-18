@@ -22,7 +22,7 @@ class OpenGraph(object):
     - https://bloodhound.specterops.io/opengraph/schema#opengraph
 
     - https://bloodhound.specterops.io/opengraph/schema#minimal-working-json
-    
+
     - https://bloodhound.specterops.io/opengraph/best-practices
     """
 
@@ -409,7 +409,7 @@ class OpenGraph(object):
 
         Validates:
         - All nodes using their individual validate() methods
-        - All edges using their individual validate() methods  
+        - All edges using their individual validate() methods
         - Graph structure issues (isolated nodes/edges)
 
         Returns:
@@ -429,7 +429,9 @@ class OpenGraph(object):
             is_edge_valid, edge_errors = edge.validate()
             if not is_edge_valid:
                 for error in edge_errors:
-                    errors.append(f"Edge {i} ({edge.start_node}->{edge.end_node}): {error}")
+                    errors.append(
+                        f"Edge {i} ({edge.start_node}->{edge.end_node}): {error}"
+                    )
 
         # Check for graph structure issues
         # Pre-compute edge mappings for O(1) lookups
@@ -440,7 +442,9 @@ class OpenGraph(object):
         for i, edge in enumerate(self.edges):
             # Check for isolated edges (edges referencing non-existent nodes)
             if edge.start_node not in self.nodes:
-                errors.append(f"Edge {i} ({edge.start_node}->{edge.end_node}): Start node '{edge.start_node}' does not exist")
+                errors.append(
+                    f"Edge {i} ({edge.start_node}->{edge.end_node}): Start node '{edge.start_node}' does not exist"
+                )
             else:
                 # Build start node mapping
                 if edge.start_node not in start_node_edges:
@@ -448,7 +452,9 @@ class OpenGraph(object):
                 start_node_edges[edge.start_node].append(edge)
 
             if edge.end_node not in self.nodes:
-                errors.append(f"Edge {i} ({edge.start_node}->{edge.end_node}): End node '{edge.end_node}' does not exist")
+                errors.append(
+                    f"Edge {i} ({edge.start_node}->{edge.end_node}): End node '{edge.end_node}' does not exist"
+                )
             else:
                 # Build end node mapping
                 if edge.end_node not in end_node_edges:
@@ -462,7 +468,9 @@ class OpenGraph(object):
             has_incoming = node_id in end_node_edges
 
             if not has_outgoing and not has_incoming:
-                errors.append(f"Node '{node_id}' is isolated (no incoming or outgoing edges)")
+                errors.append(
+                    f"Node '{node_id}' is isolated (no incoming or outgoing edges)"
+                )
 
         return len(errors) == 0, errors
 

@@ -10,14 +10,11 @@ PROPERTIES_SCHEMA = {
     "description": "A key-value map of node attributes. Values must not be objects. If a value is an array, it must contain only primitive types (e.g., strings, numbers, booleans) and must be homogeneous (all items must be of the same type).",
     "additionalProperties": {
         "type": ["string", "number", "boolean", "array"],
-        "items": {
-            "not": {
-                "type": "object"
-            }
-        }
-    }
+        "items": {"not": {"type": "object"}},
+    },
 }
-      
+
+
 class Properties(object):
     """
     Properties class for storing arbitrary key-value pairs for nodes and edges.
@@ -101,53 +98,55 @@ class Properties(object):
     def validate(self) -> tuple[bool, list[str]]:
         """
         Validate all properties according to OpenGraph schema rules.
-        
+
         Returns:
           - tuple[bool, list[str]]: (is_valid, list_of_errors)
         """
         errors = []
-        
+
         for key, value in self._properties.items():
             if not self.is_valid_property_value(value):
-                errors.append(f"Property '{key}' has invalid value type '{type(value)}' not in (str, int, float, bool, None, list)")
-        
+                errors.append(
+                    f"Property '{key}' has invalid value type '{type(value)}' not in (str, int, float, bool, None, list)"
+                )
+
         return len(errors) == 0, errors
-    
+
     def is_valid_property_value(self, value) -> bool:
         """
         Validate a single property value according to OpenGraph schema rules.
-        
+
         Args:
           - value: The property value to validate
-            
+
         Returns:
           - bool: True if valid, False otherwise
         """
         # Check if value is None (allowed)
         if value is None:
             return True
-            
+
         # Check if value is a primitive type
         if isinstance(value, (str, int, float, bool)):
             return True
-        
+
         # Check if value is an array
         if isinstance(value, list):
             if not value:  # Empty array is valid
                 return True
-            
+
             # Check if all items are of the same primitive type
             first_type = type(value[0])
             if first_type not in (str, int, float, bool):
                 return False
-            
+
             # Check that all items are the same type and not objects
             for item in value:
-                if type(item) != first_type or isinstance(item, (dict, list)):
+                if isinstance(item, first_type) or isinstance(item, (dict, list)):
                     return False
-            
+
             return True
-        
+
         # Objects are not allowed
         return False
 
@@ -178,16 +177,16 @@ class Properties(object):
     def items(self):
         """
         Return a view of the properties as (key, value) pairs.
-        
+
         Returns:
           - dict_items: View of properties as key-value pairs
         """
         return self._properties.items()
-    
+
     def keys(self):
         """
         Return a view of the property keys.
-        
+
         Returns:
           - dict_keys: View of property keys
         """

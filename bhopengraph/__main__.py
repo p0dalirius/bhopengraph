@@ -103,7 +103,7 @@ def parseArgs():
     subparsers.add_parser("info", parents=[mode_info], help="Info mode")
     subparsers.add_parser("validate", parents=[mode_validate], help="Validate mode")
     subparsers.add_parser("showpaths", parents=[mode_showpaths], help="Show paths mode")
-    
+
     return parser.parse_args()
 
 
@@ -190,10 +190,7 @@ def main():
             is_valid, validation_errors = graph.validate_graph()
 
             if options.json:
-                result = {
-                    "valid": is_valid,
-                    "errors": validation_errors
-                }
+                result = {"valid": is_valid, "errors": validation_errors}
                 print(json.dumps(result, indent=4))
             else:
                 if not is_valid:
@@ -235,7 +232,9 @@ def main():
 
             # Find paths
             logger.debug("[+] Finding paths ...")
-            paths = graph.find_paths(options.start_node_id, options.end_node_id, options.max_depth)
+            paths = graph.find_paths(
+                options.start_node_id, options.end_node_id, options.max_depth
+            )
 
             if options.json:
                 print(json.dumps(paths, indent=4))

@@ -218,32 +218,32 @@ class TestProperties(unittest.TestCase):
         # Valid primitive types
         self.props.set_property("test", "string")
         self.assertEqual(self.props.get_property("test"), "string")
-        
+
         self.props.set_property("test", 42)
         self.assertEqual(self.props.get_property("test"), 42)
-        
+
         self.props.set_property("test", 3.14)
         self.assertEqual(self.props.get_property("test"), 3.14)
-        
+
         self.props.set_property("test", True)
         self.assertEqual(self.props.get_property("test"), True)
-        
+
         self.props.set_property("test", None)
         self.assertIsNone(self.props.get_property("test"))
-        
+
         # Valid homogeneous arrays
         self.props.set_property("test", [])
         self.assertEqual(self.props.get_property("test"), [])
-        
+
         self.props.set_property("test", ["a", "b", "c"])
         self.assertEqual(self.props.get_property("test"), ["a", "b", "c"])
-        
+
         self.props.set_property("test", [1, 2, 3])
         self.assertEqual(self.props.get_property("test"), [1, 2, 3])
-        
+
         self.props.set_property("test", [1.1, 2.2, 3.3])
         self.assertEqual(self.props.get_property("test"), [1.1, 2.2, 3.3])
-        
+
         self.props.set_property("test", [True, False, True])
         self.assertEqual(self.props.get_property("test"), [True, False, True])
 
@@ -273,7 +273,7 @@ class TestProperties(unittest.TestCase):
             bytearray([1, 2, 3]),
             memoryview(bytes([1, 2, 3])),
         ]
-        
+
         for invalid_type in invalid_types:
             with self.subTest(invalid_type=type(invalid_type).__name__):
                 with self.assertRaises(ValueError):
@@ -301,7 +301,7 @@ class TestProperties(unittest.TestCase):
             [bytearray([1, 2, 3])],  # bytearray in list
             [memoryview(bytes([1, 2, 3]))],  # memoryview in list
         ]
-        
+
         for invalid_array in invalid_arrays:
             with self.subTest(invalid_array=invalid_array):
                 with self.assertRaises(ValueError):
@@ -335,9 +335,9 @@ class TestProperties(unittest.TestCase):
             -1e10,
             1e-10,
             -1e-10,
-            float('inf'),
-            float('-inf'),
-            float('nan'),
+            float("inf"),
+            float("-inf"),
+            float("nan"),
             True,
             False,
             [],
@@ -350,11 +350,13 @@ class TestProperties(unittest.TestCase):
             ["a", "a", "a"],  # homogeneous strings
             [True, True, True],  # homogeneous bools
         ]
-        
+
         for valid_type in valid_types:
             with self.subTest(valid_type=repr(valid_type)):
-                self.assertTrue(self.props.is_valid_property_value(valid_type),
-                              f"Expected {repr(valid_type)} to be valid")
+                self.assertTrue(
+                    self.props.is_valid_property_value(valid_type),
+                    f"Expected {repr(valid_type)} to be valid",
+                )
 
     def test_is_valid_property_value_invalid_types(self):
         """Test is_valid_property_value with invalid Python types."""
@@ -395,11 +397,13 @@ class TestProperties(unittest.TestCase):
             slice(None, 10),
             slice(None, None, 2),
         ]
-        
+
         for invalid_type in invalid_types:
             with self.subTest(invalid_type=type(invalid_type).__name__):
-                self.assertFalse(self.props.is_valid_property_value(invalid_type),
-                               f"Expected {type(invalid_type).__name__} to be invalid")
+                self.assertFalse(
+                    self.props.is_valid_property_value(invalid_type),
+                    f"Expected {type(invalid_type).__name__} to be invalid",
+                )
 
     def test_is_valid_property_value_invalid_arrays(self):
         """Test is_valid_property_value with invalid arrays."""
@@ -437,11 +441,13 @@ class TestProperties(unittest.TestCase):
             [1, 2, 3, memoryview(bytes([4, 5]))],  # mixed with memoryview
             [1, 2, 3, slice(4, 10, 2)],  # mixed with slice
         ]
-        
+
         for invalid_array in invalid_arrays:
             with self.subTest(invalid_array=invalid_array):
-                self.assertFalse(self.props.is_valid_property_value(invalid_array),
-                               f"Expected {repr(invalid_array)} to be invalid")
+                self.assertFalse(
+                    self.props.is_valid_property_value(invalid_array),
+                    f"Expected {repr(invalid_array)} to be invalid",
+                )
 
     def test_set_property_edge_cases(self):
         """Test setting properties with edge cases."""
@@ -449,53 +455,54 @@ class TestProperties(unittest.TestCase):
         long_string = "a" * 10000
         self.props.set_property("test", long_string)
         self.assertEqual(self.props.get_property("test"), long_string)
-        
+
         # Test with very large numbers
         large_int = 2**100
         self.props.set_property("test", large_int)
         self.assertEqual(self.props.get_property("test"), large_int)
-        
+
         # Test with very small/large floats
         small_float = 1e-100
         self.props.set_property("test", small_float)
         self.assertEqual(self.props.get_property("test"), small_float)
-        
+
         large_float = 1e100
         self.props.set_property("test", large_float)
         self.assertEqual(self.props.get_property("test"), large_float)
-        
+
         # Test with special float values
-        self.props.set_property("test", float('inf'))
-        self.assertEqual(self.props.get_property("test"), float('inf'))
-        
-        self.props.set_property("test", float('-inf'))
-        self.assertEqual(self.props.get_property("test"), float('-inf'))
-        
+        self.props.set_property("test", float("inf"))
+        self.assertEqual(self.props.get_property("test"), float("inf"))
+
+        self.props.set_property("test", float("-inf"))
+        self.assertEqual(self.props.get_property("test"), float("-inf"))
+
         # Note: NaN comparison is tricky, so we test it separately
-        self.props.set_property("test", float('nan'))
-        self.assertTrue(self.props.get_property("test") != self.props.get_property("test"))  # NaN != NaN
-        
+        self.props.set_property("test", float("nan"))
+        self.assertTrue(
+            self.props.get_property("test") != self.props.get_property("test")
+        )  # NaN != NaN
+
         # Test with empty string
         self.props.set_property("test", "")
         self.assertEqual(self.props.get_property("test"), "")
-        
+
         # Test with zero values
         self.props.set_property("test", 0)
         self.assertEqual(self.props.get_property("test"), 0)
-        
+
         self.props.set_property("test", 0.0)
         self.assertEqual(self.props.get_property("test"), 0.0)
-        
+
         # Test with single item arrays
         self.props.set_property("test", [1])
         self.assertEqual(self.props.get_property("test"), [1])
-        
+
         self.props.set_property("test", ["single"])
         self.assertEqual(self.props.get_property("test"), ["single"])
-        
+
         self.props.set_property("test", [True])
         self.assertEqual(self.props.get_property("test"), [True])
-        
 
     def test_validate_comprehensive_properties(self):
         """Test validate method with comprehensive property sets."""
@@ -512,9 +519,12 @@ class TestProperties(unittest.TestCase):
             float_list_prop=[1.1, 2.2, 3.3],
             bool_list_prop=[True, False, True],
         )
-        
+
         is_valid, errors = valid_props.validate()
-        self.assertTrue(is_valid, f"Expected valid properties to pass validation, but got errors: {errors}")
+        self.assertTrue(
+            is_valid,
+            f"Expected valid properties to pass validation, but got errors: {errors}",
+        )
         self.assertEqual(errors, [])
 
     def test_validate_invalid_properties(self):
@@ -527,13 +537,13 @@ class TestProperties(unittest.TestCase):
             "invalid_mixed_array": [1, "mixed", True],
             "invalid_nested_array": [[1, 2], [3, 4]],
             "invalid_function": lambda x: x,
-            "invalid_set": set([1, 2, 3])
+            "invalid_set": set([1, 2, 3]),
         }
-        
+
         is_valid, errors = invalid_props.validate()
         self.assertFalse(is_valid, "Expected invalid properties to fail validation")
         self.assertGreater(len(errors), 0, "Expected validation errors")
-        
+
         # Check that specific errors are present
         error_messages = " ".join(errors)
         self.assertIn("invalid_dict", error_messages)

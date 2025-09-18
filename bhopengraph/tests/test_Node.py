@@ -222,8 +222,11 @@ class TestNode(unittest.TestCase):
     def test_validate_invalid_properties(self):
         """Test validation with invalid properties."""
         from bhopengraph.Properties import Properties
+
         props = Properties()
-        props._properties = {"invalid": {"nested": "object"}}  # Directly set invalid property
+        props._properties = {
+            "invalid": {"nested": "object"}
+        }  # Directly set invalid property
         node = Node("test_id", ["User"], props)
         is_valid, errors = node.validate()
         self.assertFalse(is_valid)
