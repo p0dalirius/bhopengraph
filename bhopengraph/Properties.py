@@ -142,7 +142,7 @@ class Properties(object):
 
             # Check that all items are the same type and not objects
             for item in value:
-                if isinstance(item, first_type) or isinstance(item, (dict, list)):
+                if not isinstance(item, first_type) or isinstance(item, (dict, list)):
                     return False
 
             return True
