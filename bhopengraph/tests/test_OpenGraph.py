@@ -316,24 +316,71 @@ class TestOpenGraph(unittest.TestCase):
     # Validation and export methods tests
     def test_validate_graph_empty(self):
         """Test validating empty graph."""
-        errors = self.graph.validate_graph()
-        self.assertEqual(errors, {})
+        is_valid, errors = self.graph.validate_graph()
+        self.assertTrue(is_valid)
+        self.assertEqual(errors, [])
 
     def test_validate_graph_with_isolated_edge(self):
         """Test validating graph with isolated edge."""
         self.graph.add_edge_without_validation(self.edge1)
-        errors = self.graph.validate_graph()
-        self.assertIn("isolated_edges", errors)
-        self.assertEqual(
-            len(errors["isolated_edges"]), 2
-        )  # Both start and end nodes missing
+        is_valid, errors = self.graph.validate_graph()
+        self.assertFalse(is_valid)
+        self.assertEqual(len(errors), 2)  # Both start and end nodes missing
+        self.assertTrue(
+            any("Start node 'node1' does not exist" in error for error in errors)
+        )
+        self.assertTrue(
+            any("End node 'node2' does not exist" in error for error in errors)
+        )
 
     def test_validate_graph_with_isolated_node(self):
         """Test validating graph with isolated node."""
         self.graph.add_node(self.node1)
-        errors = self.graph.validate_graph()
-        self.assertIn("isolated_nodes", errors)
-        self.assertEqual(len(errors["isolated_nodes"]), 1)  # Isolated node
+        is_valid, errors = self.graph.validate_graph()
+        self.assertFalse(is_valid)
+        self.assertEqual(len(errors), 1)  # Isolated node
+        self.assertTrue(any("Node 'node1' is isolated" in error for error in errors))
+
+    def test_validate_graph_with_invalid_node(self):
+        """Test validating graph with invalid node."""
+        # Create a node with invalid data by directly modifying it
+        invalid_node = Node("invalid_node", ["User"])
+        invalid_node.id = 123  # Make it non-string
+        self.graph.add_node_without_validation(invalid_node)
+
+        is_valid, errors = self.graph.validate_graph()
+        self.assertFalse(is_valid)
+        self.assertTrue(
+            any("Node '123': Node ID must be a string" in error for error in errors)
+        )
+
+    def test_validate_graph_with_invalid_edge(self):
+        """Test validating graph with invalid edge."""
+        # Create an edge with invalid data by directly modifying it
+        invalid_edge = Edge("node1", "node2", "OWNS")
+        invalid_edge.start_match_by = "invalid"  # Make it invalid
+        self.graph.add_node(self.node1)
+        self.graph.add_node(self.node2)
+        self.graph.add_edge_without_validation(invalid_edge)
+
+        is_valid, errors = self.graph.validate_graph()
+        self.assertFalse(is_valid)
+        self.assertTrue(
+            any(
+                "Start match_by must be either 'id' or 'name'" in error
+                for error in errors
+            )
+        )
+
+    def test_validate_graph_with_valid_graph(self):
+        """Test validating a completely valid graph."""
+        self.graph.add_node(self.node1)
+        self.graph.add_node(self.node2)
+        self.graph.add_edge(self.edge1)
+
+        is_valid, errors = self.graph.validate_graph()
+        self.assertTrue(is_valid)
+        self.assertEqual(errors, [])
 
     def test_export_json_with_metadata(self):
         """Test exporting graph to JSON with metadata."""

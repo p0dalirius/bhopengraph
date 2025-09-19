@@ -403,37 +403,47 @@ class OpenGraph(object):
 
         return components
 
-    def validate_graph(self) -> dict:
+    def validate_graph(self) -> tuple[bool, list[str]]:
         """
-        Validate the graph for common issues.
+        Validate the graph for common issues including node and edge validation.
 
-        Optimized implementation with O(n+m) complexity instead of O(n×m).
-        Uses pre-computed edge mappings for efficient lookups.
+        Validates:
+        - All nodes using their individual validate() methods
+        - All edges using their individual validate() methods
+        - Graph structure issues (isolated nodes/edges)
 
         Returns:
-          - dict: Dictionary with error categories as keys and lists of affected elements as values
+          - tuple[bool, list[str]]: (is_valid, list_of_errors)
         """
-        errors = {"isolated_edges": [], "isolated_nodes": []}
+        errors = []
 
-        foundIsolatedEdges = False
-        foundIsolatedNodes = False
+        # Validate all nodes
+        for node_id, node in self.nodes.items():
+            is_node_valid, node_errors = node.validate()
+            if not is_node_valid:
+                for error in node_errors:
+                    errors.append(f"Node '{node_id}': {error}")
 
+        # Validate all edges
+        for i, edge in enumerate(self.edges):
+            is_edge_valid, edge_errors = edge.validate()
+            if not is_edge_valid:
+                for error in edge_errors:
+                    errors.append(
+                        f"Edge {i} ({edge.start_node}->{edge.end_node}): {error}"
+                    )
+
+        # Check for graph structure issues
         # Pre-compute edge mappings for O(1) lookups
-        # This trades O(m) memory for O(1) lookup time
         start_node_edges = {}
         end_node_edges = {}
 
-        # Build edge mappings in a single pass through edges
-        for edge in self.edges:
+        # Build edge mappings and check for isolated edges
+        for i, edge in enumerate(self.edges):
             # Check for isolated edges (edges referencing non-existent nodes)
             if edge.start_node not in self.nodes:
-                foundIsolatedEdges = True
-                errors["isolated_edges"].append(
-                    {
-                        "edge": edge,
-                        "missing_type": "start_node",
-                        "node_id": edge.start_node,
-                    }
+                errors.append(
+                    f"Edge {i} ({edge.start_node}->{edge.end_node}): Start node '{edge.start_node}' does not exist"
                 )
             else:
                 # Build start node mapping
@@ -442,13 +452,8 @@ class OpenGraph(object):
                 start_node_edges[edge.start_node].append(edge)
 
             if edge.end_node not in self.nodes:
-                foundIsolatedEdges = True
-                errors["isolated_edges"].append(
-                    {
-                        "edge": edge,
-                        "missing_type": "end_node",
-                        "node_id": edge.end_node,
-                    }
+                errors.append(
+                    f"Edge {i} ({edge.start_node}->{edge.end_node}): End node '{edge.end_node}' does not exist"
                 )
             else:
                 # Build end node mapping
@@ -463,21 +468,11 @@ class OpenGraph(object):
             has_incoming = node_id in end_node_edges
 
             if not has_outgoing and not has_incoming:
-                foundIsolatedNodes = True
-                errors["isolated_nodes"].append(
-                    {
-                        "node_id": node_id,
-                    }
+                errors.append(
+                    f"Node '{node_id}' is isolated (no incoming or outgoing edges)"
                 )
 
-        # Clean up empty error categories
-        if not foundIsolatedEdges and "isolated_edges" in errors:
-            del errors["isolated_edges"]
-
-        if not foundIsolatedNodes and "isolated_nodes" in errors:
-            del errors["isolated_nodes"]
-
-        return errors
+        return len(errors) == 0, errors
 
     # Export methods
 
