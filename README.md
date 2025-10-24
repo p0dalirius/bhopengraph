@@ -11,7 +11,7 @@
   <a href="https://specterops.io/bloodhound-community-edition/" title="Get BloodHound Community"><img alt="Get BloodHound Community" height=21px src="https://mintlify.s3.us-west-1.amazonaws.com/specterops/assets/community-edition-pill-tag.svg"></a>
   <br>
   <br>
-  This library also exists in: <a href="https://github.com/TheManticoreProject/gopengraph">Go</a>
+  This library also exists in: <a href="https://github.com/TheManticoreProject/gopengraph">Go</a> | <a href="https://github.com/p0dalirius/bhopengraph">Python</a>
 </p>
 
 ## Features
