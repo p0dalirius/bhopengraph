@@ -63,9 +63,9 @@ class OpenGraph(object):
         Returns:
           - bool: True if edge was added, False if start or end node doesn't exist
         """
-        if edge.start_node.id not in self.nodes:
+        if edge.start_node not in self.nodes:
             return False
-        if edge.end_node.id not in self.nodes:
+        if edge.end_node not in self.nodes:
             return False
 
         edge_key = self._edge_key(edge)
