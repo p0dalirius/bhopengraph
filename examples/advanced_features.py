@@ -87,7 +87,7 @@ def create_attack_graph_example():
     
     # Add all nodes to the graph
     for node in nodes.values():
-        graph.addNode(node)
+        graph.add_node(node)
     
     # Create edges following BloodHound best practices
     # Edge direction represents the direction of access/attack
@@ -129,7 +129,7 @@ def create_attack_graph_example():
     
     # Add all edges to the graph
     for edge in edges:
-        graph.addEdge(edge)
+        graph.add_edge(edge)
     
     return graph
 
@@ -154,13 +154,13 @@ def demonstrate_attack_paths(graph):
             admin_group_id = node_id
     
     if john_doe_id and admin_group_id:
-        paths = graph.findPaths(john_doe_id, admin_group_id, max_depth=5)
+        paths = graph.find_paths(john_doe_id, admin_group_id, max_depth=5)
         if paths:
             print(f"   Found {len(paths)} possible paths:")
             for i, path in enumerate(paths[:3]):  # Show first 3 paths
                 path_names = []
                 for nid in path:
-                    node = graph.getNode(nid)
+                    node = graph.get_node_by_id(nid)
                     if node:
                         path_names.append(node.get_property('name', nid))
                     else:
@@ -184,13 +184,13 @@ def demonstrate_attack_paths(graph):
             server1_id = node_id
     
     if jane_smith_id and server1_id:
-        paths = graph.findPaths(jane_smith_id, server1_id, max_depth=5)
+        paths = graph.find_paths(jane_smith_id, server1_id, max_depth=5)
         if paths:
             print(f"   Found {len(paths)} possible paths:")
             for i, path in enumerate(paths[:3]):
                 path_names = []
                 for nid in path:
-                    node = graph.getNode(nid)
+                    node = graph.get_node_by_id(nid)
                     if node:
                         path_names.append(node.get_property('name', nid))
                     else:
@@ -204,14 +204,14 @@ def demonstrate_attack_paths(graph):
     # Example 3: What can John Doe access through group memberships?
     print("\n3. John Doe's Group Memberships:")
     if john_doe_id:
-        john_edges = graph.getEdgesFromNode(john_doe_id)
+        john_edges = graph.get_edges_from_node(john_doe_id)
         for edge in john_edges:
             if edge.kind == "MemberOf":
-                target_node = graph.getNode(edge.end_node_id)
+                target_node = graph.get_node_by_id(edge.end_node)
                 if target_node:
-                    print(f"   - Member of: {target_node.get_property('name', edge.end_node_id)}")
+                    print(f"   - Member of: {target_node.get_property('name', edge.end_node)}")
                 else:
-                    print(f"   - Member of: {edge.end_node_id}")
+                    print(f"   - Member of: {edge.end_node}")
     
     # Example 4: Who has admin access to Workstation-01?
     print("\n4. Admin Access to Workstation-01:")
@@ -222,14 +222,14 @@ def demonstrate_attack_paths(graph):
             break
     
     if workstation1_id:
-        workstation1_edges = graph.getEdgesToNode(workstation1_id)
+        workstation1_edges = graph.get_edges_to_node(workstation1_id)
         for edge in workstation1_edges:
             if edge.kind == "AdminTo":
-                source_node = graph.getNode(edge.start_node_id)
+                source_node = graph.get_node_by_id(edge.start_node)
                 if source_node:
-                    print(f"   - {source_node.get_property('name', edge.start_node_id)} (User)")
+                    print(f"   - {source_node.get_property('name', edge.start_node)} (User)")
                 else:
-                    print(f"   - {edge.start_node_id} (User)")
+                    print(f"   - {edge.start_node} (User)")
     
     # Example 5: Find all paths from regular users to domain admin
     print("\n5. All Paths from Regular Users to Domain Admin:")
@@ -239,9 +239,9 @@ def demonstrate_attack_paths(graph):
             regular_users.append(node_id)
     
     for user_id in regular_users:
-        user_node = graph.getNode(user_id)
+        user_node = graph.get_node_by_id(user_id)
         if user_node and admin_group_id:
-            paths = graph.findPaths(user_id, admin_group_id, max_depth=6)
+            paths = graph.find_paths(user_id, admin_group_id, max_depth=6)
             if paths:
                 user_name = user_node.get_property('name', user_id)
                 print(f"   {user_name}: {len(paths)} paths found")
@@ -258,18 +258,18 @@ def demonstrate_graph_analysis(graph):
     print("="*60)
     
     # Connected components
-    components = graph.getConnectedComponents()
+    components = graph.get_connected_components()
     print(f"\nConnected Components: {len(components)}")
     for i, component in enumerate(components):
         print(f"  Component {i+1}: {len(component)} nodes")
         if len(component) <= 5:  # Show small components
-            node_names = [graph.getNode(nid).get_property('name', nid) for nid in component]
+            node_names = [graph.get_node_by_id(nid).get_property('name', nid) for nid in component]
             print(f"    Nodes: {', '.join(node_names)}")
     
     # Node type distribution
     print(f"\nNode Type Distribution:")
     for kind in ["User", "Group", "Computer", "Domain"]:
-        nodes = graph.getNodesByKind(kind)
+        nodes = graph.get_nodes_by_kind(kind)
         print(f"  {kind}: {len(nodes)}")
     
     # Edge type distribution
@@ -283,16 +283,12 @@ def demonstrate_graph_analysis(graph):
     
     # Graph validation
     print(f"\nGraph Validation:")
-    errors = graph.validateGraph()
-    if errors:
+    is_valid, error_list = graph.validate_graph()
+
+    if not is_valid:
         print("  Issues found:")
-        for error_type, error_list in errors.items():
-            if error_type == "isolated_edges":
-                print(f"    - {len(error_list)} orphaned edges:")
-                for error in error_list:
-                    print(f"      * Edge {error['edge_id']} references missing {error['issue']}: {error['node_id']}")
-            elif error_type == "isolated_nodes":
-                print(f"    - {len(error_list)} isolated nodes: {', '.join(error_list)}")
+        for err in error_list:
+            print(f"    - {err}")
     else:
         print("  No validation issues found")
 
@@ -308,8 +304,8 @@ def main():
     graph = create_attack_graph_example()
     
     print(f"Graph created successfully!")
-    print(f"  Nodes: {graph.getNodeCount()}")
-    print(f"  Edges: {graph.getEdgeCount()}")
+    print(f"  Nodes: {graph.get_node_count()}")
+    print(f"  Edges: {graph.get_edge_count()}")
     
     # Demonstrate attack paths
     demonstrate_attack_paths(graph)
@@ -322,12 +318,12 @@ def main():
     print("EXPORTING GRAPH")
     print("="*60)
     
-    graph.exportToFile("attack_graph_example.json")
+    graph.export_to_file("attack_graph_example.json")
     print("Graph exported to 'attack_graph_example.json'")
     
     # Show a sample of the JSON output
     print("\nSample JSON output (first 500 chars):")
-    json_output = graph.exportJSON()
+    json_output = graph.export_json()
     print(json_output[:500] + "..." if len(json_output) > 500 else json_output)
 
 if __name__ == "__main__":

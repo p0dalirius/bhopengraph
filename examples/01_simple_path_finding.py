@@ -39,10 +39,10 @@ def main():
     diana = Node("diana_004", ["Person"], Properties(name="Diana", age=28))
     
     # Add nodes to graph
-    graph.addNode(alice)
-    graph.addNode(bob)
-    graph.addNode(charlie)
-    graph.addNode(diana)
+    graph.add_node(alice)
+    graph.add_node(bob)
+    graph.add_node(charlie)
+    graph.add_node(diana)
     
     # Create edges (relationships)
     edges = [
@@ -55,20 +55,20 @@ def main():
     
     # Add edges to graph
     for edge in edges:
-        graph.addEdge(edge)
+        graph.add_edge(edge)
     
-    print(f"Graph created with {graph.getNodeCount()} nodes and {graph.getEdgeCount()} edges")
+    print(f"Graph created with {graph.get_node_count()} nodes and {graph.get_edge_count()} edges")
     
     # Find paths between Alice and Diana
     print(f"\nFinding paths from Alice to Diana:")
-    paths = graph.findPaths(alice.id, diana.id, max_depth=5)
+    paths = graph.find_paths(alice.id, diana.id, max_depth=5)
     
     if paths:
         print(f"Found {len(paths)} path(s):")
         for i, path in enumerate(paths):
             path_names = []
             for node_id in path:
-                node = graph.getNode(node_id)
+                node = graph.get_node_by_id(node_id)
                 path_names.append(node.get_property('name', node_id))
             print(f"  Path {i+1}: {' -> '.join(path_names)}")
     else:
@@ -76,14 +76,14 @@ def main():
     
     # Find paths between Bob and Diana
     print(f"\nFinding paths from Bob to Diana:")
-    paths = graph.findPaths(bob.id, diana.id, max_depth=5)
+    paths = graph.find_paths(bob.id, diana.id, max_depth=5)
     
     if paths:
         print(f"Found {len(paths)} path(s):")
         for i, path in enumerate(paths):
             path_names = []
             for node_id in path:
-                node = graph.getNode(node_id)
+                node = graph.get_node_by_id(node_id)
                 path_names.append(node.get_property('name', node_id))
             print(f"  Path {i+1}: {' -> '.join(path_names)}")
     else:
@@ -92,14 +92,14 @@ def main():
     # Show all edges
     print(f"\nAll edges in the graph:")
     for edge in graph.edges:
-        start_node = graph.getNode(edge.start_node_id)
-        end_node = graph.getNode(edge.end_node_id)
-        start_name = start_node.get_property('name', edge.start_node_id)
-        end_name = end_node.get_property('name', edge.end_node_id)
+        start_node = graph.get_node_by_id(edge.start_node)
+        end_node = graph.get_node_by_id(edge.end_node)
+        start_name = start_node.get_property('name', edge.start_node)
+        end_name = end_node.get_property('name', edge.end_node)
         print(f"  {start_name} --[{edge.kind}]--> {end_name}")
     
     # Export to JSON
-    graph.exportToFile("simple_path_finding.json")
+    graph.export_to_file("simple_path_finding.json")
     print(f"\nGraph exported to 'simple_path_finding.json'")
 
 if __name__ == "__main__":

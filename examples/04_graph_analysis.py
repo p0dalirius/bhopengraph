@@ -43,7 +43,7 @@ def main():
     
     # Add nodes to graph
     for node in nodes.values():
-        graph.addNode(node)
+        graph.add_node(node)
     
     # Create edges (some will create isolated components)
     edges = [
@@ -63,9 +63,9 @@ def main():
     
     # Add edges to graph
     for edge in edges:
-        graph.addEdge(edge)
+        graph.add_edge(edge)
     
-    print(f"Graph created with {graph.getNodeCount()} nodes and {graph.getEdgeCount()} edges")
+    print(f"Graph created with {graph.get_node_count()} nodes and {graph.get_edge_count()} edges")
     
     # Demonstrate graph analysis
     print(f"\n" + "="*50)
@@ -74,14 +74,14 @@ def main():
     
     # 1. Basic statistics
     print(f"\n1. Basic Statistics:")
-    print(f"   Total nodes: {graph.getNodeCount()}")
-    print(f"   Total edges: {graph.getEdgeCount()}")
+    print(f"   Total nodes: {graph.get_node_count()}")
+    print(f"   Total edges: {graph.get_edge_count()}")
     print(f"   Graph size: {len(graph)}")
     
     # 2. Node type distribution
     print(f"\n2. Node Type Distribution:")
     for kind in ["User", "Group", "Server"]:
-        nodes_of_kind = graph.getNodesByKind(kind)
+        nodes_of_kind = graph.get_nodes_by_kind(kind)
         print(f"   {kind}: {len(nodes_of_kind)}")
         for node in nodes_of_kind:
             name = node.get_property('name', node.id)
@@ -98,7 +98,7 @@ def main():
     
     # 4. Connected components analysis
     print(f"\n4. Connected Components Analysis:")
-    components = graph.getConnectedComponents()
+    components = graph.get_connected_components()
     print(f"   Number of components: {len(components)}")
     
     for i, component in enumerate(components):
@@ -106,7 +106,7 @@ def main():
         if len(component) <= 5:  # Show small components
             node_names = []
             for node_id in component:
-                node = graph.getNode(node_id)
+                node = graph.get_node_by_id(node_id)
                 if node:
                     node_names.append(node.get_property('name', node_id))
                 else:
@@ -117,8 +117,8 @@ def main():
     print(f"\n5. Node Connectivity Analysis:")
     for node_id, node in graph.nodes.items():
         name = node.get_property('name', node_id)
-        incoming_edges = len(graph.getEdgesToNode(node_id))
-        outgoing_edges = len(graph.getEdgesFromNode(node_id))
+        incoming_edges = len(graph.get_edges_to_node(node_id))
+        outgoing_edges = len(graph.get_edges_from_node(node_id))
         total_edges = incoming_edges + outgoing_edges
         
         print(f"   {name}:")
@@ -131,18 +131,13 @@ def main():
     
     # 6. Graph validation
     print(f"\n6. Graph Validation:")
-    errors = graph.validateGraph()
-    
-    if errors:
-        total_issues = sum(len(error_list) for error_list in errors.values())
-        print(f"   ⚠️  Found {total_issues} validation issues:")
-        for error_type, error_list in errors.items():
-            if error_type == "isolated_edges":
-                print(f"     - {len(error_list)} orphaned edges:")
-                for error in error_list:
-                    print(f"       * Edge {error['edge_id']} references missing {error['issue']}: {error['node_id']}")
-            elif error_type == "isolated_nodes":
-                print(f"     - {len(error_list)} isolated nodes: {', '.join(error_list)}")
+    is_valid, error_list = graph.validate_graph()
+
+    if not is_valid:
+        total_issues = len(error_list)
+        print(f"   ⚠️  Found {total_issues} validation issue(s):")
+        for err in error_list:
+            print(f"     - {err}")
     else:
         print(f"   ✅ No validation issues found")
     
@@ -161,18 +156,18 @@ def main():
             start_node = comp1_nodes[0]
             end_node = comp2_nodes[0]
             
-            start_name = graph.getNode(start_node).get_property('name', start_node)
-            end_name = graph.getNode(end_node).get_property('name', end_node)
+            start_name = graph.get_node_by_id(start_node).get_property('name', start_node)
+            end_name = graph.get_node_by_id(end_node).get_property('name', end_node)
             
             print(f"   Testing path from {start_name} to {end_name}:")
-            paths = graph.findPaths(start_node, end_node, max_depth=10)
+            paths = graph.find_paths(start_node, end_node, max_depth=10)
             
             if paths:
                 print(f"     Found {len(paths)} path(s)")
                 for i, path in enumerate(paths[:2]):  # Show first 2 paths
                     path_names = []
                     for nid in path:
-                        node = graph.getNode(nid)
+                        node = graph.get_node_by_id(nid)
                         if node:
                             path_names.append(node.get_property('name', nid))
                         else:
@@ -183,8 +178,8 @@ def main():
     
     # 8. Graph density analysis
     print(f"\n8. Graph Density Analysis:")
-    max_possible_edges = graph.getNodeCount() * (graph.getNodeCount() - 1)
-    actual_edges = graph.getEdgeCount()
+    max_possible_edges = graph.get_node_count() * (graph.get_node_count() - 1)
+    actual_edges = graph.get_edge_count()
     density = actual_edges / max_possible_edges if max_possible_edges > 0 else 0
     
     print(f"   Maximum possible edges: {max_possible_edges}")
@@ -199,7 +194,7 @@ def main():
         print(f"   📊 Dense graph (high connectivity)")
     
     # Export to JSON
-    graph.exportToFile("graph_analysis_example.json")
+    graph.export_to_file("graph_analysis_example.json")
     print(f"\nGraph exported to 'graph_analysis_example.json'")
     
     # Summary
@@ -208,7 +203,7 @@ def main():
     print("="*50)
     print(f"✅ Graph analysis completed successfully")
     print(f"📊 Found {len(components)} connected components")
-    print(f"🔍 Identified {len(errors)} validation issues")
+    print(f"🔍 Identified {len(error_list)} validation issues")
     print(f"📈 Graph density: {density:.2%}")
     print(f"💾 Results exported to JSON file")
 

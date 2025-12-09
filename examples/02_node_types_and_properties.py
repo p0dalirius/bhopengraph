@@ -33,7 +33,7 @@ def main():
     # Person node
     person = Node(
         "person_001", 
-        ["Person", "Employee"], 
+        ["Person"], 
         Properties(
             name="John Smith",
             age=32,
@@ -87,19 +87,19 @@ def main():
     )
     
     # Add nodes to graph
-    graph.addNode(person)
-    graph.addNode(computer)
-    graph.addNode(application)
-    graph.addNode(database)
+    graph.add_node(person)
+    graph.add_node(computer)
+    graph.add_node(application)
+    graph.add_node(database)
     
-    print(f"Graph created with {graph.getNodeCount()} nodes")
+    print(f"Graph created with {graph.get_node_count()} nodes")
     
     # Demonstrate node operations
     print(f"\nNode Operations:")
     
     # Show all nodes by type
     for kind in ["Person", "Computer", "Application", "Database"]:
-        nodes = graph.getNodesByKind(kind)
+        nodes = graph.get_nodes_by_kind(kind)
         print(f"  {kind} nodes: {len(nodes)}")
         for node in nodes:
             name = node.get_property('name', node.id)
@@ -109,7 +109,7 @@ def main():
     print(f"\nProperty Operations:")
     
     # Get a specific node
-    john = graph.getNode("person_001")
+    john = graph.get_node_by_id("person_001")
     if john:
         print(f"  John's current properties:")
         for key, value in john.properties.get_all_properties().items():
@@ -144,8 +144,8 @@ def main():
     print(f"  Is John a Director? {john.has_kind('Director')}")
     
     # Remove a kind
-    john.remove_kind("Employee")
-    print(f"  Removed 'Employee' kind from John")
+    john.remove_kind("Demo")
+    print(f"  Removed 'Demo' kind from John")
     print(f"  John's kinds after removal: {john.kinds}")
     
     # Show final node state
@@ -156,7 +156,7 @@ def main():
         print(f"  {name}: {kinds}")
     
     # Export to JSON
-    graph.exportToFile("node_types_example.json")
+    graph.export_to_file("node_types_example.json")
     print(f"\nGraph exported to 'node_types_example.json'")
 
 if __name__ == "__main__":
