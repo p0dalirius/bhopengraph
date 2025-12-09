@@ -34,11 +34,24 @@ class OpenGraph(object):
           - source_kind (str): Optional source kind for all nodes in the graph
         """
         self.nodes: Dict[str, Node] = {}
-        self.edges: List[Edge] = []
+        self.edges: Dict[str, Edge] = {}
 
         self.source_kind = source_kind
 
     # Edges methods
+
+    @staticmethod
+    def _edge_key(edge: Edge) -> str:
+        """
+        Generate a unique key for an edge based on start_node, end_node, and kind.
+
+        Args:
+          - edge (Edge): Edge to generate key for
+
+        Returns:
+          - str: Unique key for the edge
+        """
+        return f"{edge.start_node}|{edge.end_node}|{edge.kind}"
 
     def add_edge(self, edge: Edge) -> bool:
         """
@@ -50,20 +63,16 @@ class OpenGraph(object):
         Returns:
           - bool: True if edge was added, False if start or end node doesn't exist
         """
-        if edge.start_node not in self.nodes:
+        if edge.start_node.id not in self.nodes:
             return False
-        if edge.end_node not in self.nodes:
+        if edge.end_node.id not in self.nodes:
             return False
 
-        for existing_edge in self.edges:
-            if (
-                existing_edge.start_node == edge.start_node
-                and existing_edge.end_node == edge.end_node
-                and existing_edge.kind == edge.kind
-            ):
-                return False
+        edge_key = self._edge_key(edge)
+        if edge_key in self.edges:
+            return False
 
-        self.edges.append(edge)
+        self.edges[edge_key] = edge
         return True
 
     def add_edges(self, edges: List[Edge]) -> bool:
@@ -81,7 +90,7 @@ class OpenGraph(object):
 
     def add_edge_without_validation(self, edge: Edge) -> bool:
         """
-        Add an edge to the graph.
+        Add an edge to the graph. If an edge with the same key already exists, it will be overwritten.
 
         Args:
           - edge (Edge): Edge to add
@@ -92,7 +101,8 @@ class OpenGraph(object):
         if not isinstance(edge, Edge):
             return False
 
-        self.edges.append(edge)
+        edge_key = self._edge_key(edge)
+        self.edges[edge_key] = edge
         return True
 
     def add_edges_without_validation(self, edges: List[Edge]) -> bool:
@@ -122,7 +132,7 @@ class OpenGraph(object):
         Returns:
           - List[Edge]: List of edges with the specified kind
         """
-        return [edge for edge in self.edges if edge.kind == kind]
+        return [edge for edge in self.edges.values() if edge.kind == kind]
 
     def get_edges_from_node(self, node_id: str) -> List[Edge]:
         """
@@ -134,7 +144,7 @@ class OpenGraph(object):
         Returns:
           - List[Edge]: List of edges starting from the specified node
         """
-        return [edge for edge in self.edges if edge.start_node == node_id]
+        return [edge for edge in self.edges.values() if edge.start_node == node_id]
 
     def get_edges_to_node(self, node_id: str) -> List[Edge]:
         """
@@ -146,7 +156,7 @@ class OpenGraph(object):
         Returns:
           - List[Edge]: List of edges ending at the specified node
         """
-        return [edge for edge in self.edges if edge.end_node == node_id]
+        return [edge for edge in self.edges.values() if edge.end_node == node_id]
 
     def get_isolated_edges(self) -> List[Edge]:
         """
@@ -158,7 +168,7 @@ class OpenGraph(object):
         """
         return [
             edge
-            for edge in self.edges
+            for edge in self.edges.values()
             if edge.start_node not in self.nodes or edge.end_node not in self.nodes
         ]
 
@@ -319,9 +329,12 @@ class OpenGraph(object):
         del self.nodes[id]
 
         # Remove all edges that reference this node
-        self.edges = [
-            edge for edge in self.edges if edge.start_node != id and edge.end_node != id
+        edges_to_remove = [
+            key for key, edge in self.edges.items()
+            if edge.start_node == id or edge.end_node == id
         ]
+        for key in edges_to_remove:
+            del self.edges[key]
 
         return True
 
@@ -425,12 +438,12 @@ class OpenGraph(object):
                     errors.append(f"Node '{node_id}': {error}")
 
         # Validate all edges
-        for i, edge in enumerate(self.edges):
+        for edge_key, edge in self.edges.items():
             is_edge_valid, edge_errors = edge.validate()
             if not is_edge_valid:
                 for error in edge_errors:
                     errors.append(
-                        f"Edge {i} ({edge.start_node}->{edge.end_node}): {error}"
+                        f"Edge {edge_key} ({edge.start_node}->{edge.end_node}): {error}"
                     )
 
         # Check for graph structure issues
@@ -439,11 +452,11 @@ class OpenGraph(object):
         end_node_edges = {}
 
         # Build edge mappings and check for isolated edges
-        for i, edge in enumerate(self.edges):
+        for edge_key, edge in self.edges.items():
             # Check for isolated edges (edges referencing non-existent nodes)
             if edge.start_node not in self.nodes:
                 errors.append(
-                    f"Edge {i} ({edge.start_node}->{edge.end_node}): Start node '{edge.start_node}' does not exist"
+                    f"Edge {edge_key} ({edge.start_node}->{edge.end_node}): Start node '{edge.start_node}' does not exist"
                 )
             else:
                 # Build start node mapping
@@ -453,7 +466,7 @@ class OpenGraph(object):
 
             if edge.end_node not in self.nodes:
                 errors.append(
-                    f"Edge {i} ({edge.start_node}->{edge.end_node}): End node '{edge.end_node}' does not exist"
+                    f"Edge {edge_key} ({edge.start_node}->{edge.end_node}): End node '{edge.end_node}' does not exist"
                 )
             else:
                 # Build end node mapping
@@ -491,7 +504,7 @@ class OpenGraph(object):
         graph_data = {
             "graph": {
                 "nodes": [node.to_dict() for node in self.nodes.values()],
-                "edges": [edge.to_dict() for edge in self.edges],
+                "edges": [edge.to_dict() for edge in self.edges.values()],
             }
         }
 
@@ -529,7 +542,7 @@ class OpenGraph(object):
         return {
             "graph": {
                 "nodes": [node.to_dict() for node in self.nodes.values()],
-                "edges": [edge.to_dict() for edge in self.edges],
+                "edges": [edge.to_dict() for edge in self.edges.values()],
             },
             "metadata": {
                 "source_kind": (self.source_kind if self.source_kind else None)
@@ -589,7 +602,8 @@ class OpenGraph(object):
                 for edge_data in graph_data["edges"]:
                     edge = Edge.from_dict(edge_data)
                     if edge:
-                        self.edges.append(edge)
+                        edge_key = self._edge_key(edge)
+                        self.edges[edge_key] = edge
 
             # Load metadata
             if "metadata" in data and "source_kind" in data["metadata"]:
