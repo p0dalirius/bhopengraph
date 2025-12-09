@@ -330,7 +330,8 @@ class OpenGraph(object):
 
         # Remove all edges that reference this node
         edges_to_remove = [
-            key for key, edge in self.edges.items()
+            key
+            for key, edge in self.edges.items()
             if edge.start_node == id or edge.end_node == id
         ]
         for key in edges_to_remove:
