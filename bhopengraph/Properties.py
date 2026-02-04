@@ -115,7 +115,7 @@ class Properties(object):
     def is_valid_property_value(self, value) -> bool:
         """
         Validate a single property value according to OpenGraph schema rules.
-        
+
         Properties must be primitive types or arrays of primitive types.
         Nested objects and arrays of objects are not allowed.
         Arrays must be homogeneous (e.g. all strings or all numbers).
