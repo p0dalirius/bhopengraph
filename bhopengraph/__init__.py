@@ -11,12 +11,14 @@ This module provides Python classes for creating and managing graph structures
 that are compatible with BloodHound OpenGraph.
 """
 
+from .__version__ import __version__
 from .Edge import Edge
 from .Node import Node
 from .OpenGraph import OpenGraph
 from .Properties import Properties
 
-from .__version__ import __version__
+__version__
+
 __author__ = "Remi Gascou (@podalirius_)"
 
 __all__ = ["Properties", "Node", "Edge", "OpenGraph"]
