@@ -16,7 +16,7 @@ from .Node import Node
 from .OpenGraph import OpenGraph
 from .Properties import Properties
 
-__version__ = "1.1.0"
+from .__version__ import __version__
 __author__ = "Remi Gascou (@podalirius_)"
 
 __all__ = ["Properties", "Node", "Edge", "OpenGraph"]
