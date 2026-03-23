@@ -22,6 +22,7 @@ Advanced Examples
 
    advanced_features
    minimal_working_json
+   uploading_graphs
 
 Running Examples
 ---------------
@@ -40,6 +41,7 @@ All examples can be run directly from the command line. Make sure you have bhope
    python 04_graph_analysis.py
    python advanced_features.py
    python minimal_working_json.py
+   python 05_upload_graph.py
 
 Example Outputs
 --------------
@@ -52,5 +54,6 @@ Each example generates output files that demonstrate the functionality:
 * **04_graph_analysis.py**: Performs basic graph analysis operations
 * **advanced_features.py**: Shows advanced features and techniques
 * **minimal_working_json.py**: Creates the minimal working JSON example
+* **05_upload_graph.py**: Builds a graph and uploads it to BloodHound
 
 These examples follow the BloodHound OpenGraph schema and best practices, making them suitable for learning and as templates for your own projects.

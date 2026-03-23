@@ -1,0 +1,101 @@
+{
+  "graph": {
+    "nodes": [
+      {
+        "id": "server-001",
+        "kinds": ["Server", "Base"],
+        "properties": {
+          "displayname": "web-server-01",
+          "objectid": "server-001",
+          "name": "WEB-SERVER-01",
+          "os": "Ubuntu 22.04",
+          "ip_address": "10.0.1.10"
+        }
+      },
+      {
+        "id": "server-002",
+        "kinds": ["Server", "Base"],
+        "properties": {
+          "displayname": "db-server-01",
+          "objectid": "server-002",
+          "name": "DB-SERVER-01",
+          "os": "Ubuntu 22.04",
+          "ip_address": "10.0.2.20"
+        }
+      },
+      {
+        "id": "user-001",
+        "kinds": ["Person", "Base"],
+        "properties": {
+          "displayname": "alice",
+          "objectid": "user-001",
+          "name": "ALICE",
+          "email": "alice@example.com",
+          "department": "Engineering"
+        }
+      },
+      {
+        "id": "user-002",
+        "kinds": ["Person", "Base"],
+        "properties": {
+          "displayname": "bob",
+          "objectid": "user-002",
+          "name": "BOB",
+          "email": "bob@example.com",
+          "department": "DevOps"
+        }
+      },
+      {
+        "id": "group-001",
+        "kinds": ["Group", "Base"],
+        "properties": {
+          "displayname": "Server Admins",
+          "objectid": "group-001",
+          "name": "SERVER-ADMINS"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "start": { "value": "user-001", "match_by": "id" },
+        "end": { "value": "group-001", "match_by": "id" },
+        "kind": "MemberOf"
+      },
+      {
+        "start": { "value": "user-002", "match_by": "id" },
+        "end": { "value": "group-001", "match_by": "id" },
+        "kind": "MemberOf"
+      },
+      {
+        "start": { "value": "group-001", "match_by": "id" },
+        "end": { "value": "server-001", "match_by": "id" },
+        "kind": "AdminTo"
+      },
+      {
+        "start": { "value": "group-001", "match_by": "id" },
+        "end": { "value": "server-002", "match_by": "id" },
+        "kind": "AdminTo"
+      },
+      {
+        "start": { "value": "user-001", "match_by": "id" },
+        "end": { "value": "server-001", "match_by": "id" },
+        "kind": "HasSession",
+        "properties": {
+          "timestamp": "2026-03-06T10:30:00Z"
+        }
+      },
+      {
+        "start": { "value": "server-001", "match_by": "id" },
+        "end": { "value": "server-002", "match_by": "id" },
+        "kind": "ConnectedTo",
+        "properties": {
+          "port": 5432,
+          "protocol": "tcp"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "source_kind": "Base"
+  }
+}

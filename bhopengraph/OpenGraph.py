@@ -550,6 +550,20 @@ class OpenGraph(object):
             },
         }
 
+    # Upload methods
+
+    def upload(self, client, file_name: str = "opengraph-ingest.json") -> int:
+        """Upload this graph to BloodHound via the file-upload API.
+
+        Args:
+          - client (BloodHoundClient): An authenticated BloodHoundClient instance.
+          - file_name (str): Filename hint for the upload.
+
+        Returns:
+          - int: The ingest job ID.
+        """
+        return client.upload_graph(self.export_to_dict(), file_name=file_name)
+
     # Import methods
 
     def import_from_json(self, json_data: str) -> bool:

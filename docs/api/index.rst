@@ -13,6 +13,7 @@ Core Classes
    Node
    Edge
    Properties
+   BloodHoundClient
 
 Utilities
 ---------

@@ -1,0 +1,14 @@
+{
+  "custom_nodes": [
+    {
+      "kindName": "CustomNodeType",
+      "config": {
+        "icon": {
+          "type": "font-awesome",
+          "name": "circle",
+          "color": "#17A2B8"
+        }
+      }
+    }
+  ]
+}

@@ -9,6 +9,7 @@ import json
 import os
 
 from bhopengraph import OpenGraph
+from bhopengraph.BloodHoundClient import BloodHoundClient, BloodHoundClientError
 from bhopengraph.Logger import Logger
 from bhopengraph.utils import filesize_string
 
@@ -98,11 +99,97 @@ def parseArgs():
         help="Maximum path depth to search (default: 10)",
     )
 
+    # Creating the "upload-icons" subparser ==============================================================================================================
+    mode_upload_icons = argparse.ArgumentParser(add_help=False)
+    mode_upload_icons.add_argument(
+        "--url",
+        dest="url",
+        required=True,
+        default=None,
+        help="BloodHound base URL",
+    )
+    mode_upload_icons.add_argument(
+        "--token-id",
+        dest="token_id",
+        required=True,
+        default=None,
+        help="API token ID",
+    )
+    mode_upload_icons.add_argument(
+        "--token-key",
+        dest="token_key",
+        required=True,
+        default=None,
+        help="API token key (base64-encoded)",
+    )
+    mode_upload_icons.add_argument(
+        "--icons-file",
+        dest="icons_file",
+        required=True,
+        default=None,
+        help="Path to icons JSON file",
+    )
+    mode_upload_icons.add_argument(
+        "--json",
+        dest="json",
+        action="store_true",
+        default=False,
+        help="Output results in JSON format",
+    )
+
+    # Creating the "upload-graph" subparser ==============================================================================================================
+    mode_upload_graph = argparse.ArgumentParser(add_help=False)
+    mode_upload_graph.add_argument(
+        "--url",
+        dest="url",
+        required=True,
+        default=None,
+        help="BloodHound base URL",
+    )
+    mode_upload_graph.add_argument(
+        "--token-id",
+        dest="token_id",
+        required=True,
+        default=None,
+        help="API token ID",
+    )
+    mode_upload_graph.add_argument(
+        "--token-key",
+        dest="token_key",
+        required=True,
+        default=None,
+        help="API token key (base64-encoded)",
+    )
+    mode_upload_graph.add_argument(
+        "--file",
+        dest="file",
+        required=True,
+        default=None,
+        help="Path to OpenGraph JSON file to upload",
+    )
+    mode_upload_graph.add_argument(
+        "--json",
+        dest="json",
+        action="store_true",
+        default=False,
+        help="Output results in JSON format",
+    )
+
     # Adding the subparsers to the base parser
     subparsers = parser.add_subparsers(help="Mode", dest="mode", required=True)
     subparsers.add_parser("info", parents=[mode_info], help="Info mode")
     subparsers.add_parser("validate", parents=[mode_validate], help="Validate mode")
     subparsers.add_parser("showpaths", parents=[mode_showpaths], help="Show paths mode")
+    subparsers.add_parser(
+        "upload-icons",
+        parents=[mode_upload_icons],
+        help="Upload custom node icons to BloodHound",
+    )
+    subparsers.add_parser(
+        "upload-graph",
+        parents=[mode_upload_graph],
+        help="Upload an OpenGraph JSON file to BloodHound",
+    )
 
     return parser.parse_args()
 
@@ -240,6 +327,65 @@ def main():
                 print(json.dumps(paths, indent=4))
             else:
                 logger.debug(f"  └── Paths: {paths}")
+
+    elif options.mode == "upload-icons":
+        if not os.path.exists(options.icons_file):
+            if options.json:
+                print(
+                    json.dumps(
+                        {"error": f"File {options.icons_file} does not exist"}, indent=4
+                    )
+                )
+            else:
+                logger.error(f"File {options.icons_file} does not exist")
+            return
+
+        try:
+            client = BloodHoundClient(options.url, options.token_id, options.token_key)
+            logger.log(f"[+] Loading icons from {options.icons_file}")
+            results = client.upload_icons_from_file(options.icons_file)
+
+            if options.json:
+                print(json.dumps(results, indent=4))
+            else:
+                logger.log(f"[+] Uploaded {len(results)} custom node icon(s):")
+                for r in results:
+                    logger.log(f"  ├── {r['kind']}: {r['action']}")
+                logger.log("  └── Done")
+        except BloodHoundClientError as e:
+            if options.json:
+                print(json.dumps({"error": str(e)}, indent=4))
+            else:
+                logger.error(str(e))
+
+    elif options.mode == "upload-graph":
+        if not os.path.exists(options.file):
+            if options.json:
+                print(
+                    json.dumps(
+                        {"error": f"File {options.file} does not exist"}, indent=4
+                    )
+                )
+            else:
+                logger.error(f"File {options.file} does not exist")
+            return
+
+        try:
+            client = BloodHoundClient(options.url, options.token_id, options.token_key)
+            logger.log(
+                f"[+] Uploading graph from {options.file} ({filesize_string(os.path.getsize(options.file))})"
+            )
+            job_id = client.upload_graph_from_file(options.file)
+
+            if options.json:
+                print(json.dumps({"job_id": job_id, "file": options.file}, indent=4))
+            else:
+                logger.log(f"[+] Upload complete, job ID: {job_id}")
+        except BloodHoundClientError as e:
+            if options.json:
+                print(json.dumps({"error": str(e)}, indent=4))
+            else:
+                logger.error(str(e))
 
 
 if __name__ == "__main__":

@@ -12,6 +12,12 @@ that are compatible with BloodHound OpenGraph.
 """
 
 from .__version__ import __version__
+from .BloodHoundClient import (
+    BloodHoundAPIError,
+    BloodHoundAuthError,
+    BloodHoundClient,
+    BloodHoundClientError,
+)
 from .Edge import Edge
 from .Node import Node
 from .OpenGraph import OpenGraph
@@ -21,4 +27,13 @@ __version__
 
 __author__ = "Remi Gascou (@podalirius_)"
 
-__all__ = ["Properties", "Node", "Edge", "OpenGraph"]
+__all__ = [
+    "Properties",
+    "Node",
+    "Edge",
+    "OpenGraph",
+    "BloodHoundClient",
+    "BloodHoundClientError",
+    "BloodHoundAuthError",
+    "BloodHoundAPIError",
+]
