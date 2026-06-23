@@ -47,10 +47,13 @@ class TestProperties(unittest.TestCase):
         self.props.set_property("enabled", False)
         self.assertEqual(self.props.get_property("enabled"), False)
 
-    def test_set_property_none(self):
-        """Test setting a None property."""
-        self.props.set_property("optional", None)
-        self.assertIsNone(self.props.get_property("optional"))
+    def test_set_property_none_raises_error(self):
+        """Test that setting a None property raises ValueError.
+
+        Per the OpenGraph schema, null is not a valid property value.
+        """
+        with self.assertRaises(ValueError):
+            self.props.set_property("optional", None)
 
     def test_set_property_list(self):
         """Test setting a list property."""
@@ -198,8 +201,8 @@ class TestProperties(unittest.TestCase):
         self.assertTrue(self.props.is_valid_property_value(True))
 
     def test_is_valid_property_value_none(self):
-        """Test that None values are valid."""
-        self.assertTrue(self.props.is_valid_property_value(None))
+        """Test that None values are invalid per the OpenGraph schema."""
+        self.assertFalse(self.props.is_valid_property_value(None))
 
     def test_is_valid_property_value_list(self):
         """Test that list values are valid."""
@@ -227,9 +230,6 @@ class TestProperties(unittest.TestCase):
 
         self.props.set_property("test", True)
         self.assertEqual(self.props.get_property("test"), True)
-
-        self.props.set_property("test", None)
-        self.assertIsNone(self.props.get_property("test"))
 
         # Valid homogeneous arrays
         self.props.set_property("test", [])
@@ -311,7 +311,6 @@ class TestProperties(unittest.TestCase):
         """Test is_valid_property_value with comprehensive Python types."""
         # Valid types
         valid_types = [
-            None,
             "string",
             "",
             "unicode_string_ñáéíóú",
@@ -361,6 +360,7 @@ class TestProperties(unittest.TestCase):
     def test_is_valid_property_value_invalid_types(self):
         """Test is_valid_property_value with invalid Python types."""
         invalid_types = [
+            None,
             {"dict": "not allowed"},
             {"nested": {"dict": "not allowed"}},
             {"empty": {}},
@@ -512,7 +512,6 @@ class TestProperties(unittest.TestCase):
             int_prop=42,
             float_prop=3.14,
             bool_prop=True,
-            none_prop=None,
             empty_list_prop=[],
             string_list_prop=["a", "b", "c"],
             int_list_prop=[1, 2, 3],
