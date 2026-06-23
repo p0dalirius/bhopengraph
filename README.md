@@ -129,6 +129,36 @@ This gives us the following [Minimal Working JSON](https://bloodhound.specterops
 }
 ```
 
+### Edge endpoint matching strategies
+
+By default, edge endpoints are resolved by node `id`, which is the preferred and fastest strategy. The OpenGraph schema also supports resolving an endpoint by `name` (deprecated, but still accepted) or dynamically by one or more `property` matchers. Use these when you need to attach an edge to a node you did not emit yourself (for example, an existing AD/AZ object collected by SharpHound), and always set a `kind` filter to avoid attaching the edge to the wrong node on a name collision.
+
+```py
+from bhopengraph.Edge import Edge, Endpoint, PropertyMatcher
+
+# Match the end node by name, constrained to the Computer kind
+edge_by_name = Edge.with_endpoints(
+    start=Endpoint.by_id("user-1234"),
+    end=Endpoint.by_name("DC01.CORP.COM", kind="Computer"),
+    kind="Reaches",
+)
+
+# Match the start node dynamically by property matchers (AND-combined)
+edge_by_property = Edge.with_endpoints(
+    start=Endpoint.by_property(
+        [PropertyMatcher(key="username", value="alice.smith")],
+        kind="User",
+    ),
+    end=Endpoint.by_id("server-5678"),
+    kind="CustomRelationship",
+)
+```
+
+The simple `Edge(start_node, end_node, kind, ...)` constructor still works for `id`- and `name`-matched endpoints via its `start_match_by` / `end_match_by` arguments.
+
+> [!NOTE]
+> Edge `kind` values must match `^[A-Za-z0-9_]+$` (letters, digits, underscores only) and must not use the reserved `tag_` prefix. Node `kinds` are limited to a maximum of 3 entries, and property values must be primitives (string, number, boolean) or homogeneous arrays of primitives — `null` is not a valid property value.
+
 ## Contributing
 
 Pull requests are welcome. Feel free to open an issue if you want to add other features.

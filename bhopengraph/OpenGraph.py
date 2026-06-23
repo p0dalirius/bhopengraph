@@ -7,7 +7,7 @@
 import json
 from typing import Dict, List, Optional, Set
 
-from bhopengraph.Edge import Edge
+from bhopengraph.Edge import MATCH_BY_ID, Edge
 from bhopengraph.Node import Node
 
 
@@ -43,7 +43,11 @@ class OpenGraph(object):
     @staticmethod
     def _edge_key(edge: Edge) -> str:
         """
-        Generate a unique key for an edge based on start_node, end_node, and kind.
+        Generate a unique key for an edge based on its endpoints and kind.
+
+        The key incorporates each endpoint's match strategy (id, name, or
+        property matchers), so edges that differ only in how an endpoint is
+        resolved are not collapsed together.
 
         Args:
           - edge (Edge): Edge to generate key for
@@ -51,21 +55,25 @@ class OpenGraph(object):
         Returns:
           - str: Unique key for the edge
         """
-        return f"{edge.start_node}|{edge.end_node}|{edge.kind}"
+        return edge.get_unique_id()
 
     def add_edge(self, edge: Edge) -> bool:
         """
         Add an edge to the graph if it doesn't already exist and if the start and end nodes exist.
 
+        Only endpoints resolved by node id are checked against the local node
+        set; name- and property-matched endpoints are resolved by BloodHound at
+        ingestion time and cannot be validated here.
+
         Args:
           - edge (Edge): Edge to add
 
         Returns:
-          - bool: True if edge was added, False if start or end node doesn't exist
+          - bool: True if edge was added, False if an id-matched endpoint node doesn't exist
         """
-        if edge.start_node not in self.nodes:
+        if edge.start.match_by == MATCH_BY_ID and edge.start.value not in self.nodes:
             return False
-        if edge.end_node not in self.nodes:
+        if edge.end.match_by == MATCH_BY_ID and edge.end.value not in self.nodes:
             return False
 
         edge_key = self._edge_key(edge)
@@ -167,10 +175,28 @@ class OpenGraph(object):
             - List[Edge]: List of edges with no start or end node
         """
         return [
-            edge
-            for edge in self.edges.values()
-            if edge.start_node not in self.nodes or edge.end_node not in self.nodes
+            edge for edge in self.edges.values() if self._edge_has_missing_node(edge)
         ]
+
+    def _edge_has_missing_node(self, edge: Edge) -> bool:
+        """
+        Report whether an edge references a non-existent local node.
+
+        Only endpoints resolved by node id are checked; name- and
+        property-matched endpoints are resolved by BloodHound at ingestion time
+        and are not considered missing.
+
+        Args:
+          - edge (Edge): Edge to check
+
+        Returns:
+          - bool: True if an id-matched endpoint references a missing node
+        """
+        if edge.start.match_by == MATCH_BY_ID and edge.start.value not in self.nodes:
+            return True
+        if edge.end.match_by == MATCH_BY_ID and edge.end.value not in self.nodes:
+            return True
+        return False
 
     def get_isolated_edges_count(self) -> int:
         """
@@ -452,24 +478,29 @@ class OpenGraph(object):
         start_node_edges = {}
         end_node_edges = {}
 
-        # Build edge mappings and check for isolated edges
+        # Build edge mappings and check for isolated edges.
+        # Only id-matched endpoints reference local nodes; name- and
+        # property-matched endpoints are resolved by BloodHound at ingestion
+        # time and are not validated against the local node set.
         for edge_key, edge in self.edges.items():
-            # Check for isolated edges (edges referencing non-existent nodes)
-            if edge.start_node not in self.nodes:
+            start_is_id = edge.start.match_by == MATCH_BY_ID
+            end_is_id = edge.end.match_by == MATCH_BY_ID
+
+            if start_is_id and edge.start_node not in self.nodes:
                 errors.append(
                     f"Edge {edge_key} ({edge.start_node}->{edge.end_node}): Start node '{edge.start_node}' does not exist"
                 )
-            else:
+            elif start_is_id:
                 # Build start node mapping
                 if edge.start_node not in start_node_edges:
                     start_node_edges[edge.start_node] = []
                 start_node_edges[edge.start_node].append(edge)
 
-            if edge.end_node not in self.nodes:
+            if end_is_id and edge.end_node not in self.nodes:
                 errors.append(
                     f"Edge {edge_key} ({edge.start_node}->{edge.end_node}): End node '{edge.end_node}' does not exist"
                 )
-            else:
+            elif end_is_id:
                 # Build end node mapping
                 if edge.end_node not in end_node_edges:
                     end_node_edges[edge.end_node] = []

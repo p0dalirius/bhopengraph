@@ -366,10 +366,7 @@ class TestOpenGraph(unittest.TestCase):
         is_valid, errors = self.graph.validate_graph()
         self.assertFalse(is_valid)
         self.assertTrue(
-            any(
-                "Start match_by must be either 'id' or 'name'" in error
-                for error in errors
-            )
+            any("Unsupported match_by 'invalid'" in error for error in errors)
         )
 
     def test_validate_graph_with_valid_graph(self):
