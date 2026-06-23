@@ -6,7 +6,14 @@
 
 from bhopengraph.Properties import Properties
 
-# https://bloodhound.specterops.io/opengraph/schema#node-json
+# https://bloodhound.specterops.io/opengraph/developer/nodes
+
+# MAX_KINDS is the maximum number of kinds a node may have, as defined by the
+# BloodHound OpenGraph schema (the node "kinds" array is constrained to
+# "maxItems": 3).
+#
+# Source: https://bloodhound.specterops.io/opengraph/developer/nodes
+MAX_KINDS = 3
 
 NODE_SCHEMA = {
     "title": "Generic Ingest Node",
@@ -55,8 +62,8 @@ class Node(object):
     Follows BloodHound OpenGraph schema requirements with unique IDs, kinds, and properties.
 
     Sources:
-    - https://bloodhound.specterops.io/opengraph/schema#nodes
-    - https://bloodhound.specterops.io/opengraph/schema#minimal-working-json
+    - https://bloodhound.specterops.io/opengraph/developer/nodes
+    - https://bloodhound.specterops.io/opengraph/developer/graph-data
     """
 
     def __init__(self, id: str, kinds: list = None, properties: Properties = None):
@@ -65,29 +72,45 @@ class Node(object):
 
         Args:
           - id (str): Universally unique identifier for the node
-          - kinds (list): List of node types/classes
+          - kinds (list): List of node types/classes (at most MAX_KINDS)
           - properties (Properties): Node properties
         """
         if not id:
             raise ValueError("Node ID cannot be empty")
 
+        kinds = kinds or []
+        if isinstance(kinds, list) and len(kinds) > MAX_KINDS:
+            raise ValueError(
+                f"Node cannot have more than {MAX_KINDS} kinds, got {len(kinds)}"
+            )
+
         self.id = id
-        self.kinds = kinds or []
+        self.kinds = kinds
         self.properties = properties or Properties()
 
-    def add_kind(self, kind: str):
+    def add_kind(self, kind: str) -> bool:
         """
-        Add a kind/type to the node.
+        Add a kind/type to the node if it doesn't already exist.
+
+        The BloodHound OpenGraph schema limits a node to at most MAX_KINDS (3)
+        kinds. Returns True if the node has the kind after the call (it was
+        added or was already present) and False if the kind could not be added
+        because the node already holds the maximum number of kinds.
 
         Args:
           - kind (str): Kind/type to add
+
+        Returns:
+          - bool: True if the node has the kind after the call, False otherwise
         """
+        if kind in self.kinds:
+            return True
 
-        if len(self.kinds) >= 3:
-            raise ValueError("Node can only have a maximum of 3 kinds")
+        if len(self.kinds) >= MAX_KINDS:
+            return False
 
-        if kind not in self.kinds:
-            self.kinds.append(kind)
+        self.kinds.append(kind)
+        return True
 
     def remove_kind(self, kind: str):
         """
@@ -230,8 +253,8 @@ class Node(object):
             errors.append("Kinds must be a list")
         elif len(self.kinds) < 1:
             errors.append("Node must have at least one kind")
-        elif len(self.kinds) > 3:
-            errors.append("Node can have at most 3 kinds")
+        elif len(self.kinds) > MAX_KINDS:
+            errors.append(f"Node can have at most {MAX_KINDS} kinds")
         else:
             for i, kind in enumerate(self.kinds):
                 if not isinstance(kind, str):
