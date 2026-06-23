@@ -191,19 +191,15 @@ class TestNode(unittest.TestCase):
         self.assertTrue(is_valid)
         self.assertEqual(errors, [])
 
-    def test_validate_four_kinds(self):
-        """Test validation with four kinds."""
-        node = Node("test_id", ["User", "Admin", "Manager", "Owner"])
-        is_valid, errors = node.validate()
-        self.assertFalse(is_valid)
-        self.assertIn("Node can have at most 3 kinds", errors)
+    def test_init_four_kinds_raises(self):
+        """Test that constructing a node with four kinds raises ValueError."""
+        with self.assertRaises(ValueError):
+            Node("test_id", ["User", "Admin", "Manager", "Owner"])
 
-    def test_validate_five_kinds(self):
-        """Test validation with five kinds."""
-        node = Node("test_id", ["User", "Admin", "Manager", "Owner", "Guest"])
-        is_valid, errors = node.validate()
-        self.assertFalse(is_valid)
-        self.assertIn("Node can have at most 3 kinds", errors)
+    def test_init_five_kinds_raises(self):
+        """Test that constructing a node with five kinds raises ValueError."""
+        with self.assertRaises(ValueError):
+            Node("test_id", ["User", "Admin", "Manager", "Owner", "Guest"])
 
     def test_validate_non_string_kind(self):
         """Test validation with non-string kind."""
