@@ -12,7 +12,14 @@ that are compatible with BloodHound OpenGraph.
 """
 
 from .__version__ import __version__
-from .Edge import Edge
+from .Edge import (
+    MATCH_BY_ID,
+    MATCH_BY_NAME,
+    MATCH_BY_PROPERTY,
+    Edge,
+    Endpoint,
+    PropertyMatcher,
+)
 from .Node import Node
 from .OpenGraph import OpenGraph
 from .Properties import Properties
@@ -21,4 +28,14 @@ __version__
 
 __author__ = "Remi Gascou (@podalirius_)"
 
-__all__ = ["Properties", "Node", "Edge", "OpenGraph"]
+__all__ = [
+    "Properties",
+    "Node",
+    "Edge",
+    "Endpoint",
+    "PropertyMatcher",
+    "OpenGraph",
+    "MATCH_BY_ID",
+    "MATCH_BY_NAME",
+    "MATCH_BY_PROPERTY",
+]
